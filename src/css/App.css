@@ -1,0 +1,121 @@
+.App {
+  display: flex;
+  height: 100vh;
+}
+
+.left-sidebar {
+  width: 370px;
+  border-right: 1px solid #e8e8e8;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+}
+
+.right-sidebar {
+  width: 470px;
+  border-left: 1px solid #e8e8e8;
+}
+
+.LeftContainer {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+}
+
+.ai-input-container {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: calc(100% - 31px);
+    padding: 5px;
+    background-color: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ai-input-container .ant-input-textarea {
+    height: 100%;
+}
+
+.ai-input-container .ant-input {
+    font-size: 14px;
+    border: none;
+    resize: none;
+}
+
+.send-icon {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    color: #1890ff;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.send-icon:hover {
+    color: #40a9ff;
+}
+
+.send-button {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.send-button .anticon {
+    font-size: 20px;
+    color: #1890ff;
+}
+
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 110px; /* 为输入框留出空间 */
+}
+
+.message {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.avatar {
+    margin-right: 10px;
+}
+
+.avatar.user {
+    background-color: #1890ff;
+}
+
+.avatar.assistant {
+    background-color: #52c41a;
+}
+
+.message-content {
+    max-width: calc(100% - 40px);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;  /* 0.875rem 换算成 px */
+    line-height: 1.7142857;
+}
+
+.message.user .message-content {
+    background-color: #e6f7ff;
+}
+
+.message.assistant .message-content {
+    background-color: #f6ffed;
+}
