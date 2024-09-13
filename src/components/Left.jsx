@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Input, message, Avatar } from 'antd';
 import { SendOutlined, UserOutlined, RobotOutlined } from '@ant-design/icons';
-import axios from 'axios';
-import { chatCompletion } from '../api/open_ai';
+import { sendMessage, addMessage } from '../redux/chatAiSlice';
 
 function PageLeft() {
     const [input, setInput] = useState('');
-    const [response, setResponse] = useState('');
-    const [messages, setMessages] = useState([]);
+    const dispatch = useDispatch();
+    const { messages, isLoading, error } = useSelector(state => state.chatAi);
     const messagesEndRef = useRef(null);
 
     const handleSend = async () => {
@@ -17,25 +17,19 @@ function PageLeft() {
         }
 
         const userMessage = { role: 'user', content: input };
-        setMessages(prevMessages => [...prevMessages, userMessage]);
+        dispatch(addMessage(userMessage));
         setInput('');
 
         try {
-            const result = await chatCompletion([...messages, userMessage]);
-            const aiMessage = { role: 'assistant', content: result };
-            setMessages(prevMessages => [...prevMessages, aiMessage]);
+            await dispatch(sendMessage(input)).unwrap();
         } catch (error) {
             console.error('Error:', error);
             message.error('发送失败，请稍后重试');
         }
     };
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
     useEffect(() => {
-        scrollToBottom();
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
     return (
@@ -59,8 +53,10 @@ function PageLeft() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onPressEnter={(e) => {
-                        e.preventDefault();
-                        handleSend();
+                        if (!e.shiftKey) {
+                            e.preventDefault();
+                            handleSend();
+                        }
                     }}
                 />
                 <SendOutlined className="send-icon" onClick={handleSend} />
