@@ -1,11 +1,12 @@
 import { Layout } from 'antd';
 import Left from "./components/Left.jsx";
 import Right from "./components/Right.jsx";
+import Content from "./components/Content.jsx";
 import "./css/App.css";
 
 import RouterConfig from "./router/index.jsx"
 
-const { Content } = Layout;
+const { Content: AntdContent } = Layout;
 
 function App() {
   return (
@@ -13,9 +14,9 @@ function App() {
       <div className="left-sidebar">
         <Left />
       </div>
-      <Content className="content">
-        <RouterConfig />
-      </Content>
+      <AntdContent className="content">
+        <Content />
+      </AntdContent>
       <div className="right-sidebar">
         <Right />
       </div>
