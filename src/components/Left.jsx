@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Input, message, Avatar } from 'antd';
 import { SendOutlined, UserOutlined, RobotOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { chatCompletion } from '../api/open_ai';
 
 function PageLeft() {
     const [input, setInput] = useState('');
@@ -20,21 +21,8 @@ function PageLeft() {
         setInput('');
 
         try {
-            const result = await axios.post(
-                'http://openai-proxy.brain.loocaa.com/v1/chat/completions',
-                {
-                    model: "gpt-3.5-turbo",
-                    messages: [...messages, userMessage]
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer DlJYSkMVj1x4zoe8jZnjvxfHG6z5yGxK'
-                    }
-                }
-            );
-
-            const aiMessage = { role: 'assistant', content: result.data.choices[0].message.content };
+            const result = await chatCompletion([...messages, userMessage]);
+            const aiMessage = { role: 'assistant', content: result };
             setMessages(prevMessages => [...prevMessages, aiMessage]);
         } catch (error) {
             console.error('Error:', error);
