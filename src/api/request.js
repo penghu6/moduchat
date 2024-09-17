@@ -2,7 +2,7 @@ import axios from "axios";
 
 const service = axios.create({
   baseURL: 'http://openai-proxy.brain.loocaa.com',
-  timeout: 5000,
+  timeout: 100000,
 });
 
 // 请求拦截
