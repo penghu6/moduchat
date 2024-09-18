@@ -29,6 +29,7 @@ const PreviewArea = styled.div`
   border-radius: 8px;
   padding: 15px;
   margin-top: 20px;
+  height: 500px; // 设置一个固定高度
 `;
 
 function Preview({ codeBlocks }) {
