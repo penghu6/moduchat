@@ -48,7 +48,7 @@ function Preview({ codeBlocks }) {
       .replace(/import React(,|\s*)\s*{\s*(useState,\s*useEffect|useEffect,\s*useState)?\s*}\s*from\s*['"]react['"];?\n?/, '')
       .replace(/import React from ['"]react['"];?\n?/, '')
       .replace(/export default (\w+);?/, 'window.$1 = $1;')
-      .replace(/export { (\w+) as default };?/, 'window.$1 = $1;');
+      .replace(/export { (\w+) as default };?/, 'window.$1 = $1;')
     console.log('Processed code:', processedCode);
     return processedCode;
   };
@@ -70,20 +70,28 @@ function Preview({ codeBlocks }) {
                 <div id="root"></div>
                 <script type="text/babel">
                   const { useState, useEffect } = React;
+                  
+                  // Inject the user code after processing
                   ${preprocessCode(code)}
+                  
                   (function() {
                     const componentName = Object.keys(window).find(key => 
                       window[key] && 
                       typeof window[key] === 'function' && 
-                      /^[A-Z]/.test(key) &&
+                      /^[A-Z]/.test(key) && // Ensure it's a React component with uppercase first letter
                       key !== 'React' &&
                       key !== 'ReactDOM'
                     );
+      
                     if (componentName) {
-                      ReactDOM.render(React.createElement(window[componentName]), document.getElementById('root'));
+                      ReactDOM.render(
+                        React.createElement(window[componentName]), 
+                        document.getElementById('root')
+                      );
                     } else {
                       console.error('No valid React component found. Available global objects:', Object.keys(window));
-                      document.getElementById('root').innerHTML = '<p style="color: red;">Error: No valid React component found. Check the console for more details.</p>';
+                      document.getElementById('root').innerHTML = 
+                        '<p style="color: red;">Error: No valid React component found. Check the console for more details.</p>';
                     }
                   })();
                 </script>
@@ -95,6 +103,7 @@ function Preview({ codeBlocks }) {
       </PreviewArea>
     </PreviewContainer>
   );
+  
 }
 
 export default Preview;

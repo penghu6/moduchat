@@ -1,0 +1,20 @@
+.message-content {
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+.message-content p {
+  margin-bottom: 10px;
+}
+
+.message-content pre {
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.message-content code {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: #f0f0f0;
+  padding: 2px 4px;
+  border-radius: 3px;
+}

@@ -3,6 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Input, message, Avatar } from 'antd';
 import { SendOutlined, UserOutlined, RobotOutlined } from '@ant-design/icons';
 import { sendMessage, addMessage } from '../redux/chatAiSlice';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import '../css/Left.css'; 
 
 function PageLeft() {
     const [input, setInput] = useState('');
@@ -41,7 +45,31 @@ function PageLeft() {
                             icon={msg.role === 'user' ? <UserOutlined /> : <RobotOutlined />} 
                             className={`avatar ${msg.role}`}
                         />
-                        <div className="message-content">{msg.content}</div>
+                        <div className="message-content">
+                            <ReactMarkdown
+                                components={{
+                                    code({node, inline, className, children, ...props}) {
+                                        const match = /language-(\w+)/.exec(className || '')
+                                        return !inline && match ? (
+                                            <SyntaxHighlighter
+                                               
+                                                language={match[1]}
+                                                PreTag="div"
+                                                {...props}
+                                            >
+                                                {String(children).replace(/\n$/, '')}
+                                            </SyntaxHighlighter>
+                                        ) : (
+                                            <code className={className} {...props}>
+                                                {children}
+                                            </code>
+                                        )
+                                    }
+                                }}
+                            >
+                                {msg.content}
+                            </ReactMarkdown>
+                        </div>
                     </div>
                 ))}
                 <div ref={messagesEndRef} />
@@ -56,6 +84,12 @@ function PageLeft() {
                         if (!e.shiftKey) {
                             e.preventDefault();
                             handleSend();
+                        }
+                    }}
+                    onScroll={(e) => {
+                        const target = e.target;
+                        if (target.scrollHeight - target.scrollTop === target.clientHeight) {
+                            target.scrollTop = target.scrollHeight;
                         }
                     }}
                 />
