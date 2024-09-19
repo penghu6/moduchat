@@ -29,12 +29,12 @@ function Editor({ extractedCode, setExtractedCode, setCodeBlocks }) {
             </div>
             <CodeMirror
                 value={extractedCode}
-                height="500px"
+                height="700px"
                 extensions={[
                     EditorView.lineWrapping,
                     html(),
                     css(),
-                    javascript({ jsx: true })
+                    javascript({ jsx: true })  // 启用 JavaScript 和 JSX 支持
                 ]}
                 theme="dark"
                 onChange={(value) => {

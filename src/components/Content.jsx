@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { Tabs } from 'antd';
 import Editor from './code_preview/Editor';
 import Preview from './code_preview/Preview';
+import DynamicPreview from './code_preview/DynamicPreview'; 
 
 function Content() {
     const { messages } = useSelector(state => state.chatAi);
@@ -51,7 +52,7 @@ function Content() {
                         />
                     </TabPane>
                     <TabPane tab="Code Preview" key="preview">
-                        <Preview codeBlocks={codeBlocks} />
+                        <DynamicPreview codeBlocks={codeBlocks} />
                     </TabPane>
                 </Tabs>
             </div>
@@ -61,7 +62,7 @@ function Content() {
     return (
         <div className="content-container">
             <h2>代码预览</h2>
-            {lastAssistantMessage && renderCodeBlocks()}
+            {renderCodeBlocks()}
         </div>
     );
 }
