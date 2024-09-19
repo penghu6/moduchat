@@ -4,6 +4,7 @@ import { Tabs } from 'antd';
 import Editor from './code_preview/Editor';
 import Preview from './code_preview/Preview';
 import DynamicPreview from './code_preview/DynamicPreview'; 
+import AppPreview from './code_preview/AppPreview';  // 新增
 
 function Content() {
     const { messages } = useSelector(state => state.chatAi);
@@ -11,6 +12,7 @@ function Content() {
     const [activeTab, setActiveTab] = useState('editor');
     const [extractedCode, setExtractedCode] = useState('');
     const [codeBlocks, setCodeBlocks] = useState({ html: '', css: '', js: '' });
+    const [appComponents, setAppComponents] = useState([]);  // 新增
 
     const extractCodeBlocks = (content) => {
         const blocks = {
@@ -38,6 +40,10 @@ function Content() {
         }
     }, [lastAssistantMessage]);
 
+    const addComponentToAppPreview = (component) => {
+        setAppComponents(prevComponents => [...prevComponents, component]);
+    };
+
     const renderCodeBlocks = () => {
         const { TabPane } = Tabs;
 
@@ -53,6 +59,12 @@ function Content() {
                     </TabPane>
                     <TabPane tab="Code Preview" key="preview">
                         <DynamicPreview codeBlocks={codeBlocks} />
+                    </TabPane>
+                    <TabPane tab="App Preview" key="appPreview">
+                        <AppPreview 
+                            components={appComponents} 
+                            addComponent={addComponentToAppPreview}
+                        />
                     </TabPane>
                 </Tabs>
             </div>
