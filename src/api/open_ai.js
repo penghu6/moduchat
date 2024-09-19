@@ -1,6 +1,6 @@
 import request from "./request";
 
-export async function chatCompletion(messages, model = "gpt-4o") {
+export async function chatCompletion(messages, model = "gpt-3.5-turbo") {
   try {
     const response = await request({
       url: "/v1/chat/completions",

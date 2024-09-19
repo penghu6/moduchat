@@ -2,6 +2,7 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { addComponent, removeComponent } from '../../redux/appPreviewSlice';
 import '../../css/AppPreview.css';
+import { DeleteOutlined } from '@ant-design/icons';
 
 const AppPreview = () => {
   const components = useSelector(state => state.appPreview.components);
@@ -51,24 +52,20 @@ const AppPreview = () => {
                   {typeof ComponentData.component === 'string'
                     ? React.createElement(eval(`(${ComponentData.component})`))
                     : React.createElement(ComponentData.component)}
-                  <button
+                  <DeleteOutlined
                     onClick={() => handleRemoveComponent(index)}
                     style={{
                       position: 'absolute',
                       top: '5px',
                       right: '5px',
-                      background: 'red',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '20px',
-                      height: '20px',
-                      fontSize: '12px',
-                      cursor: 'pointer'
+                      color: 'rgba(255, 0, 0, 0.7)',
+                      fontSize: '18px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
                     }}
-                  >
-                    X
-                  </button>
+                    onMouseEnter={(e) => e.target.style.color = 'rgba(255, 0, 0, 0.9)'}
+                    onMouseLeave={(e) => e.target.style.color = 'rgba(255, 0, 0, 0.7)'}
+                  />
                 </div>
               ))
             ) : (
