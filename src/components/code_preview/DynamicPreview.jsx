@@ -48,7 +48,7 @@ function DynamicPreview({ codeBlocks }) {
             #root {
               padding: 0;
               width: 100%;
-              height: 100%;
+              height: 100vh;
               overflow: auto;
               -webkit-overflow-scrolling: touch;
             }
@@ -72,6 +72,29 @@ function DynamicPreview({ codeBlocks }) {
           <div id="root"></div>
           <script type="text/babel">
             const { useState, useEffect, useRef } = React;
+
+            // 添加拖动功能
+            const DraggableComponent = ({ children }) => {
+              const handleDragStart = (e) => {
+                e.dataTransfer.setData('text/plain', 'Dragged Component');
+              };
+
+              return (
+                <div
+                  draggable
+                  onDragStart={handleDragStart}
+                  style={{ 
+                    width: '100%',
+                    height: '100%',
+                    overflow: 'visible',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  {children}
+                </div>
+              );
+            };
+
             ${preprocessCode(code)}
             (function() {
               const componentName = Object.keys(window).find(key => 
@@ -79,12 +102,13 @@ function DynamicPreview({ codeBlocks }) {
                 typeof window[key] === 'function' && 
                 /^[A-Z]/.test(key) && 
                 key !== 'React' &&
-                key !== 'ReactDOM'
+                key !== 'ReactDOM' &&
+                key !== 'DraggableComponent'
               );
 
               if (componentName) {
                 ReactDOM.render(
-                  React.createElement(window[componentName]), 
+                  React.createElement(DraggableComponent, null, React.createElement(window[componentName])), 
                   document.getElementById('root')
                 );
               } else {

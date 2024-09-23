@@ -19,7 +19,7 @@ export async function chatCompletion(messages, model = "gpt-4o") {
           `- Component Description: ${prompt}\n`,
           `- Do not use libraries or imports other than React.`,
           `- Use JavaScript, not TypeScript. Do not include any TypeScript syntax or type annotations.`,
-          `- Adapt to mobile with width: '323px', height: '624px'. The view window is 750rpx.`,
+          `- Adapt to mobile with a maximum width of 323px and a maximum height of 624px. Ensure that the container of the component does not have fixed width and height.`,
           `- Have any dynamic data. Use placeholders as data. Do not use props.`,
           `- Write only a single component. Do not include ReactDOM.render or any root rendering code.`,
           `- Use React hooks for state management and side effects.`,

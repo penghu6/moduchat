@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { addComponent } from '../redux/appPreviewSlice';
 import '../css/Right.css';
@@ -168,8 +168,26 @@ const componentList = [
 ];
 
 const Right = () => {
-  const [components] = useState(componentList);
+  const [components, setComponents] = useState(componentList);
   const dispatch = useDispatch();
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const code = e.dataTransfer.getData('text/plain');
+    if (code) {
+      const newComponent = {
+        id: components.length + 1,
+        name: `Component${components.length + 1}`,
+        component: () => <div dangerouslySetInnerHTML={{ __html: code }} />
+      };
+      setComponents([...components, newComponent]);
+      dispatch(addComponent(newComponent));
+    }
+  };
 
   const handleDragStart = (e, componentId) => {
     const component = componentList.find(c => c.id === componentId);
@@ -185,7 +203,7 @@ const Right = () => {
   };
 
   return (
-    <div className="right-container">
+    <div className="right-container" onDragOver={handleDragOver} onDrop={handleDrop}>
       <h2>组件预览列表</h2>
       <div className="component-list">
         {components.map((component) => (
