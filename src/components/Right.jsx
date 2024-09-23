@@ -11,8 +11,8 @@ const componentList = [
     component: () => (
       <div style={{ color: 'red', textAlign: 'center', fontSize: '18px' }}>
         Hello World
-      </div>
-    )
+      </div> 
+    ) 
   },
   {
     id: 2,

@@ -1,3 +1,5 @@
+import * as Babel from '@babel/standalone';
+
 /**
  * 将 JSON 数据存储到本地存储
  * @param {string} key - 存储的键名
@@ -66,3 +68,72 @@ export const getAllKeys = () => {
     return [];
   }
 };
+
+/**
+ * 动态编译 React 组件代码
+ * @param {string} code - 要编译的组件代码
+ * @param {Object} React - React 对象
+ * @returns {Function|null} 编译后的组件函数，如果编译失败则返回 null
+ */
+export const compileComponent = (code) => {
+  try {
+    // 使用 Babel 转换代码
+    const transformedCode = Babel.transform(code, {
+      presets: ['react'],
+    }).code;
+
+    // 移除 import 和 export 语句
+    const codeWithoutImportExport = transformedCode
+      .replace(/import\s+.*?from\s+['"].*?['"];?/g, '')
+      .replace(/export\s+default\s+\w+;?/, '');
+
+    // 提取组件名称
+    const componentNameMatch = code.match(/const\s+(\w+)\s*=/);
+    const componentName = componentNameMatch ? componentNameMatch[1] : 'AnonymousComponent';
+
+    // 使用 Function 构造函数动态创建组件
+    const ComponentFunction = new Function('React', `
+      const { useState, useEffect, useCallback, useMemo, useRef, useReducer, useContext } = React;
+      ${codeWithoutImportExport}
+      return ${componentName};
+    `);
+    
+    return ComponentFunction(React);
+  } catch (error) {
+    console.error('编译组件时出错:', error);
+    return null;
+  }
+};
+
+/**
+ * 生成动态组件代码
+ * @param {string} prompt - 用于生成组件的提示词
+ * @returns {string} 生成的组件代码
+ */
+export const generateComponentCode = () => {
+  const template = `
+
+const HelloWorld = () => {
+  const style = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '680px',
+    width: '100vw',
+    fontSize: '30px',
+    backgroundColor: '#f2f2f2'
+  };
+
+  return (
+    <div style={style}>
+      Hello World
+    </div>
+  );
+};
+
+`;
+  return template;
+};
+
+
+

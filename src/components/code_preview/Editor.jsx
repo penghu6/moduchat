@@ -38,13 +38,14 @@ function Editor({ extractedCode, setExtractedCode, setCodeBlocks }) {
                 ]}
                 theme="dark"
                 onChange={(value) => {
+                    console.log("value",value);
                     setExtractedCode(value);
-                    const htmlEndIndex = value.indexOf('<style>');
-                    const cssEndIndex = value.indexOf('</style>');
+                    // const htmlEndIndex = value.indexOf('<style>');
+                    // const cssEndIndex = value.indexOf('</style>');
                     const updatedBlocks = {
-                        html: value.substring(0, htmlEndIndex).trim(),
-                        css: value.substring(value.indexOf('<style>') + 7, cssEndIndex).trim(),
-                        js: value.substring(value.indexOf('<script>') + 8, value.indexOf('</script>')).trim()
+                        // html: value.substring(0, htmlEndIndex).trim(),
+                        // css: value.substring(value.indexOf('<style>') + 7, cssEndIndex).trim(),
+                        js: value
                     };
                     setCodeBlocks(updatedBlocks);
                 }}

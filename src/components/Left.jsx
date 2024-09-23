@@ -5,7 +5,6 @@ import { SendOutlined, UserOutlined, RobotOutlined } from '@ant-design/icons';
 import { sendMessage, addMessage } from '../redux/chatAiSlice';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import '../css/Left.css'; 
 
 function PageLeft() {
@@ -13,6 +12,11 @@ function PageLeft() {
     const dispatch = useDispatch();
     const { messages, isLoading, error } = useSelector(state => state.chatAi);
     const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
     const handleSend = async () => {
         if (!input.trim()) {
@@ -33,12 +37,20 @@ function PageLeft() {
     };
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        scrollToBottom();
     }, [messages]);
+
+    useEffect(() => {
+        const observer = new MutationObserver(scrollToBottom);
+        const config = { childList: true, subtree: true };
+        observer.observe(messagesContainerRef.current, config);
+
+        return () => observer.disconnect();
+    }, []);
 
     return (
         <div className="LeftContainer">
-            <div className="messages-container">
+            <div className="messages-container" ref={messagesContainerRef}>
                 {messages.map((msg, index) => (
                     <div key={index} className={`message ${msg.role}`}>
                         <Avatar 
@@ -52,7 +64,6 @@ function PageLeft() {
                                         const match = /language-(\w+)/.exec(className || '')
                                         return !inline && match ? (
                                             <SyntaxHighlighter
-                                               
                                                 language={match[1]}
                                                 PreTag="div"
                                                 {...props}
@@ -79,7 +90,9 @@ function PageLeft() {
                     placeholder="说出你的需求..."
                     autoSize={{ minRows: 3, maxRows: 5 }}
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={(e) => {
+                        setInput(e.target.value)
+                    }}
                     onPressEnter={(e) => {
                         if (!e.shiftKey) {
                             e.preventDefault();

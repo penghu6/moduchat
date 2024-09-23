@@ -34,6 +34,7 @@ module.exports = {
         type: 'asset/resource',
       },
     ],
+    noParse: /@babel\/standalone/,
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -42,6 +43,10 @@ module.exports = {
     }),
     new webpack.ProvidePlugin({
       React: 'react',
+    }),
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^\.\/locale$/,
+      contextRegExp: /@babel\/standalone$/,
     }),
   ],
   resolve: {
