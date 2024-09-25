@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { addComponent } from '../redux/appPreviewSlice';
+import { compileComponent } from '../utils/tools';
 import '../css/Right.css';
 import { UserOutlined } from '@ant-design/icons';
 
@@ -175,22 +175,10 @@ const Right = () => {
     e.preventDefault();
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const code = e.dataTransfer.getData('text/plain');
-    if (code) {
-      const newComponent = {
-        id: components.length + 1,
-        name: `Component${components.length + 1}`,
-        component: () => <div dangerouslySetInnerHTML={{ __html: code }} />
-      };
-      setComponents([...components, newComponent]);
-      dispatch(addComponent(newComponent));
-    }
-  };
-
   const handleDragStart = (e, componentId) => {
-    const component = componentList.find(c => c.id === componentId);
+    console.log('handleDragStart started', componentId);
+    console.log('handleDragStart started', components);
+    const component = components.find(c => c.id === componentId);
     if (!component) return;
 
     const componentData = {
@@ -202,8 +190,41 @@ const Right = () => {
     e.dataTransfer.setData('customize-component', JSON.stringify(componentData));
   };
 
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const codeData = e.dataTransfer.getData('text/plain');
+    let newComponentCode;
+    
+    try {
+      newComponentCode = JSON.parse(codeData);
+    } catch (error) {
+      newComponentCode = codeData; 
+    }
+
+    // 使用 compileComponent 函数编译组件代码
+    const AnonymousComponent = compileComponent(newComponentCode);
+
+    if (AnonymousComponent) {
+      setComponents(prevComponents => {
+        const newId = Math.max(...prevComponents.map(c => c.id), 0) + 1;
+        const updatedComponents = [{
+          id: newId,
+          name: AnonymousComponent.name || `Component${newId}`,
+          component: AnonymousComponent
+        }, ...prevComponents];
+
+        console.log('更新后的组件列表:', updatedComponents);
+        return updatedComponents;
+      });
+
+      console.log('新组件已添加', AnonymousComponent.name);
+    } else {
+      console.error('组件编译失败');
+    }
+  };
+
   return (
-    <div className="right-container" onDragOver={handleDragOver} onDrop={handleDrop}>
+    <div className="right-container" onDragOver={handleDragOver} onDrop={handleDrop} onDragStart={handleDragStart}>
       <h2>组件预览列表</h2>
       <div className="component-list">
         {components.map((component) => (

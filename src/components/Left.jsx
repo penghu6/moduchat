@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Input, message, Avatar } from 'antd';
 import { SendOutlined, UserOutlined, RobotOutlined } from '@ant-design/icons';
-import { sendMessage, addMessage } from '../redux/chatAiSlice';
+import { sendMessage, addMessage } from '../redux/chat-ai-slice';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import '../css/Left.css'; 

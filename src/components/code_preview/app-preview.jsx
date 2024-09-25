@@ -1,9 +1,8 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addComponent, removeComponent } from '../../redux/appPreviewSlice';
+import { addComponent, removeComponent } from '../../redux/app-preview-slice';
 import '../../css/AppPreview.css';
 import { DeleteOutlined } from '@ant-design/icons';
-
 const AppPreview = () => {
   const components = useSelector(state => state.appPreview.components);
   const dispatch = useDispatch();
@@ -14,9 +13,9 @@ const AppPreview = () => {
 
   const handleDrop = (e) => {
     e.preventDefault();
-    const componentData = JSON.parse(e.dataTransfer.getData('customize-component'));
+    const componentData = JSON.parse(e.dataTransfer.getData('customize-component')) ;
     console.log('Dropped component data:', componentData);
-    const componentToAdd = {...componentData, component: componentData.component.toString()};
+    const componentToAdd = {...componentData, component: componentData.component.toString().replace("function ", '')};
     console.log('Component to be added:', componentToAdd);
     dispatch(addComponent(componentToAdd));
     console.log('handleDrop completed');

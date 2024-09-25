@@ -1,11 +1,10 @@
-import { Route, Routes, Navigate } from "react-router-dom";
-
-// 引入页面
+import { Route, Routes } from "react-router-dom";
+import Home from "../pages/home";
 
 function RouteConfig() {
     return (
         <Routes>
-            <Route path="/" element={<Navigate replace to="/" />} />
+            <Route path="/" element={<Home />} />
         </Routes>
     )
 }

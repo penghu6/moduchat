@@ -10,6 +10,7 @@ export async function chatCompletion(messages, model = "gpt-4o") {
           "You're tasked with writing a visually appealing React component using JavaScript and custom CSS for a website.",
           "Only import React as a dependency.",
           "Be concise and only reply with the component code.",
+
         ].join("\n"),
       },
       {
@@ -31,6 +32,7 @@ export async function chatCompletion(messages, model = "gpt-4o") {
           `- Use custom CSS creatively to achieve an attractive design.`,
           `- Use px as the unit for all dimensions to ensure compatibility with different screen sizes.`,
           `- Include a <style> tag within the component to define the custom CSS styles.`,
+          `- Include a <style> tag within the component to define the custom CSS styles. Use a root div with class name 'container'. Do not set a fixed height, but you can set a max-height.`,
           `- Ensure the CSS styles are scoped to the component to avoid affecting other parts of the application.`,
         ].join("\n"),
       },

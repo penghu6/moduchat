@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Tabs } from 'antd';
-import Editor from './code_preview/Editor';
-import Preview from './code_preview/Preview';
-import DynamicPreview from './code_preview/DynamicPreview'; 
-import AppPreview from './code_preview/AppPreview';  // 新增
+import Editor from './code_preview/editor';
+import Preview from './code_preview/preview';
+import DynamicPreview from './code_preview/dynamic-preview'; 
+import AppPreview from './code_preview/app-preview';  // 新增
 
 function Content() {
     const { messages } = useSelector(state => state.chatAi);

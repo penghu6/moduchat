@@ -1,3 +1,4 @@
+import React from 'react';
 import * as Babel from '@babel/standalone';
 
 /**
@@ -88,7 +89,7 @@ export const compileComponent = (code) => {
       .replace(/export\s+default\s+\w+;?/, '');
 
     // 提取组件名称
-    const componentNameMatch = code.match(/const\s+(\w+)\s*=/);
+    const componentNameMatch = code.match(/function\s+(\w+)\s*\(/);
     const componentName = componentNameMatch ? componentNameMatch[1] : 'AnonymousComponent';
 
     // 使用 Function 构造函数动态创建组件
@@ -133,6 +134,31 @@ const HelloWorld = () => {
 
 `;
   return template;
+};
+
+// 将组件转换为字符串
+export const componentToString = (component) => {
+  console.log("组件类型:", typeof component);
+  if (typeof component === 'string') {
+    return component;
+  }
+  let str = component.toString();
+  console.log("将组件转换为字符串:", str);
+  return str;
+};
+
+// 将字符串转换回组件
+export const stringToComponent = (str) => {
+  // 移除可能存在的 "function" 关键字
+  const cleanStr = str.replace(/^function\s*/, '');
+  
+  // 使用 Function 构造函数创建新的函数
+  const ComponentFunction = new Function(`
+    return (${cleanStr})
+  `)();
+
+  // 返回一个 React 组件
+  return (props) => React.createElement(ComponentFunction, props);
 };
 
 

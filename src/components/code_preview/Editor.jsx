@@ -38,7 +38,6 @@ function Editor({ extractedCode, setExtractedCode, setCodeBlocks }) {
                 ]}
                 theme="dark"
                 onChange={(value) => {
-                    console.log("value",value);
                     setExtractedCode(value);
                     // const htmlEndIndex = value.indexOf('<style>');
                     // const cssEndIndex = value.indexOf('</style>');

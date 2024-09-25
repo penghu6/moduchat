@@ -1,15 +1,12 @@
 import { Layout } from 'antd';
-import Left from "./components/left.jsx";
-import Right from "./components/right.jsx";
-import Content from "./components/content.jsx";
-import Test from "./components/test.jsx";
-import "./css/App.css";
-
-import RouterConfig from "./router/index.jsx"
+import Left from "../components/left.jsx";
+import Right from "../components/right.jsx";
+import Content from "../components/content.jsx";
+import "../css/App.css";
 
 const { Content: AntdContent } = Layout;
 
-function App() {
+function Home() {
   return (
     <div className="App">
       <div className="left-sidebar">
@@ -25,4 +22,4 @@ function App() {
   )
 }
 
-export default App;
+export default Home;

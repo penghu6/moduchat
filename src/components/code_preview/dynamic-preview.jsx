@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../../css/DynamicPreview.css';
+import { componentToString, stringToComponent } from '../../utils/tools';
 
 function DynamicPreview({ codeBlocks }) {
   const [code, setCode] = useState('');
@@ -7,7 +8,6 @@ function DynamicPreview({ codeBlocks }) {
 
   useEffect(() => {
     if (codeBlocks && codeBlocks.js) {
-      console.log("codeBlocks.js", codeBlocks.js);
       setCode(codeBlocks.js);
     }
   }, [codeBlocks]);
@@ -22,7 +22,9 @@ function DynamicPreview({ codeBlocks }) {
     return code
       .replace(/import\s+.*?from\s+['"].*?['"];?/g, '') // 去掉 import 语句
       .replace(/export\s+default\s+\w+;?/, '') // 去掉 export default 语句
-      .replace(/const\s+\{\s*useState\s*,\s*useEffect\s*\}\s*=\s*React\s*;?/g, ''); // 去掉 const { useState, useEffect } = React;
+      .replace(/const\s+\{\s*useState\s*,\s*useEffect\s*\}\s*=\s*React\s*;?/g, '') // 去掉 const { useState, useEffect } = React;
+      .replace(/const\s+\{\s*useState\s*\}\s*=\s*React\s*;?/g, '') // 去掉 const { useState } = React;
+      .replace(/import\s+React,\s*{\s*useState\s*}\s*from\s+['"]react['"];?/g, ''); // 去掉 import React, { useState } from 'react';
   };
 
   const updateIframeContent = () => {
@@ -74,9 +76,9 @@ function DynamicPreview({ codeBlocks }) {
             const { useState, useEffect, useRef } = React;
 
             // 添加拖动功能
-            const DraggableComponent = ({ children }) => {
+            const DraggableComponent = ({ children, code }) => {
               const handleDragStart = (e) => {
-                e.dataTransfer.setData('text/plain', 'Dragged Component');
+                e.dataTransfer.setData("text/plain", ${JSON.stringify(preprocessCode(code))});
               };
 
               return (
