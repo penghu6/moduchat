@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../../css/DynamicPreview.css';
 import { componentToString, stringToComponent } from '../../utils/tools';
+import { reviseComponent } from '../../api/open_ai';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -39,7 +40,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
     if (iframeRef.current) {
       updateIframeContent();
     }
-  }, [code, isSmartEditMode]);
+  }, [code]);
 
   useEffect(() => {
     console.log('Smart Edit Mode in DynamicPreview:', isSmartEditMode);
@@ -52,6 +53,17 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
       .replace(/const\s+\{\s*useState\s*,\s*useEffect\s*\}\s*=\s*React\s*;?/g, '') // 去掉 const { useState, useEffect } = React;
       .replace(/const\s+\{\s*useState\s*\}\s*=\s*React\s*;?/g, '') // 去掉 const { useState } = React;
       .replace(/import\s+React,\s*{\s*useState\s*}\s*from\s+['"]react['"];?/g, ''); // 去掉 import React, { useState } from 'react';
+  };
+
+  const handleReviseComponent = async (prompt) => {
+    try {
+      const revisedCode = await reviseComponent(prompt, code);
+      console.log('Revised code:', revisedCode);
+      // 如果你想更新预览，可以取消下面这行的注释
+       setCode(revisedCode);
+    } catch (error) {
+      console.error('Error revising component:', error);
+    }
   };
 
   const updateIframeContent = () => {
@@ -251,7 +263,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
           <script type="text/babel">
             const { useState, useEffect, useRef } = React;
 
-            const EditInput = ({ top, left, onSubmit }) => {
+            const EditInput = ({ top, left, onSubmit, selectedElement }) => {
               const [input, setInput] = useState('');
               const textareaRef = useRef(null);
 
@@ -264,7 +276,9 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
               const handleSubmit = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onSubmit(input);
+                const elementInfo = selectedElement ? \`Selected element: <\${selectedElement.tagName.toLowerCase()} data-rs="\${selectedElement.getAttribute('data-rs')}">\n\n\` : '';
+                const prompt = \`\${elementInfo}\${input}\`;
+                onSubmit(prompt);
                 setInput('');
               };
 
@@ -274,11 +288,9 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
               };
 
               const handleKeyDown = (e) => {
-                if (e.key === 'Enter') {
-                  if (!e.shiftKey) {
-                    e.preventDefault(); // 防止默认的换行行为
-                    handleSubmit(e);
-                  }
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
                 }
               };
 
@@ -303,7 +315,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
                             onChange={handleChange}
                             onKeyDown={handleKeyDown}
                             className="edit-input-textarea"
-                            placeholder="Change the color of the element"
+                            placeholder="Enter instructions to revise the component"
                             onClick={handleClick}
                           />
                         </div>
@@ -317,7 +329,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
               );
             };
 
-            const DraggableComponent = ({ children, code }) => {
+            const DraggableComponent = ({ children, code, onRevise }) => {
               const [selectedElement, setSelectedElement] = useState(null);
               const [inputPosition, setInputPosition] = useState({ top: 0, left: 0 });
               const [showInput, setShowInput] = useState(false);
@@ -384,10 +396,8 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
                 };
               }, []);
 
-              const handleInputSubmit = (input) => {
-                if (selectedElement) {
-                  selectedElement.style.color = input;
-                }
+              const handleInputSubmit = (prompt) => {
+                onRevise(prompt);
               };
 
               return (
@@ -407,6 +417,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
                       top={inputPosition.top}
                       left={inputPosition.left}
                       onSubmit={handleInputSubmit}
+                      selectedElement={selectedElement}
                     />
                   )}
                 </div>
@@ -429,7 +440,12 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
               
               if (componentName) {
                 ReactDOM.render(
-                  React.createElement(DraggableComponent, { code: ${JSON.stringify(code)} }, 
+                  React.createElement(DraggableComponent, { 
+                    code: ${JSON.stringify(code)},
+                    onRevise: (prompt) => {
+                      window.parent.postMessage({ type: 'reviseComponent', prompt }, '*');
+                    }
+                  }, 
                     React.createElement(window[componentName])
                   ), 
                   document.getElementById('root')
@@ -446,6 +462,20 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
     `);
     iframeDoc.close();
   };
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data.type === 'reviseComponent') {
+        handleReviseComponent(event.data.prompt);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [code]);
 
   return (
     <ErrorBoundary>
