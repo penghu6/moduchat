@@ -2,13 +2,37 @@ import React, { useState, useEffect, useRef } from 'react';
 import '../../css/DynamicPreview.css';
 import { componentToString, stringToComponent } from '../../utils/tools';
 
-function DynamicPreview({ codeBlocks }) {
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Rendering error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong.</h1>;
+    }
+
+    return this.props.children; 
+  }
+}
+
+function DynamicPreview({ codeBlocks, isSmartEditMode }) {
   const [code, setCode] = useState('');
   const iframeRef = useRef(null);
 
   useEffect(() => {
     if (codeBlocks && codeBlocks.js) {
       setCode(codeBlocks.js);
+      // 已移除 console.log('CodeBlocks JS:', codeBlocks.js);
     }
   }, [codeBlocks]);
 
@@ -16,22 +40,29 @@ function DynamicPreview({ codeBlocks }) {
     if (iframeRef.current) {
       updateIframeContent();
     }
-  }, [code]);
+  }, [code, isSmartEditMode]);
+
+  // 添加新的 useEffect 来打印 isSmartEditMode 的状态
+  useEffect(() => {
+    console.log('Smart Edit Mode in DynamicPreview:', isSmartEditMode);
+  }, [isSmartEditMode]);
 
   const preprocessCode = (code) => {
-    return code
-      .replace(/import\s+.*?from\s+['"].*?['"];?/g, '') // 去掉 import 语句
+    let processedCode = code
+      .replace(/import\s+.*?from\s+['"].*?['"];?/g, '') // 去掉所有 import 语句
       .replace(/export\s+default\s+\w+;?/, '') // 去掉 export default 语句
       .replace(/const\s+\{\s*useState\s*,\s*useEffect\s*\}\s*=\s*React\s*;?/g, '') // 去掉 const { useState, useEffect } = React;
       .replace(/const\s+\{\s*useState\s*\}\s*=\s*React\s*;?/g, '') // 去掉 const { useState } = React;
       .replace(/import\s+React,\s*{\s*useState\s*}\s*from\s+['"]react['"];?/g, ''); // 去掉 import React, { useState } from 'react';
+    console.log("processedCode",processedCode)
+    return processedCode;
   };
 
   const updateIframeContent = () => {
     const iframeDoc = iframeRef.current.contentDocument;
     iframeDoc.open();
     iframeDoc.write(`
-      <!DOCTYPE html>
+       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="UTF-8" />
@@ -96,7 +127,6 @@ function DynamicPreview({ codeBlocks }) {
                 </div>
               );
             };
-
             ${preprocessCode(code)}
             (function() {
               const componentName = Object.keys(window).find(key => 
@@ -107,7 +137,7 @@ function DynamicPreview({ codeBlocks }) {
                 key !== 'ReactDOM' &&
                 key !== 'DraggableComponent'
               );
-
+  console.log("componentName",componentName)
               if (componentName) {
                 ReactDOM.render(
                   React.createElement(DraggableComponent, null, React.createElement(window[componentName])), 
@@ -127,28 +157,30 @@ function DynamicPreview({ codeBlocks }) {
   };
 
   return (
-    <div className="preview-container">
-      <div className="phone-frame">
-        <div className="phone-screen">
-          <div className="phone-notch"></div>
-          <div className="phone-status-bar">
-            <span>9:41</span>
-            <span>📶 📶 🔋</span>
+    <ErrorBoundary>
+      <div className="preview-container">
+        <div className="phone-frame">
+          <div className="phone-screen">
+            <div className="phone-notch"></div>
+            <div className="phone-status-bar">
+              <span>9:41</span>
+              <span>📶 📶 🔋</span>
+            </div>
+            <div className="iframe-container">
+              <iframe
+                ref={iframeRef}
+                onLoad={updateIframeContent}
+                title="codePreview"
+                frameBorder="0"
+                className="code-preview"
+              />
+            </div>
+            <div className="phone-home-indicator"></div>
           </div>
-          <div className="iframe-container">
-            <iframe
-              ref={iframeRef}
-              onLoad={updateIframeContent}
-              title="codePreview"
-              frameBorder="0"
-              className="code-preview"
-            />
-          </div>
-          <div className="phone-home-indicator"></div>
+          <div className="phone-button"></div>
         </div>
-        <div className="phone-button"></div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }
 

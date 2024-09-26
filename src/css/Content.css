@@ -4,8 +4,34 @@
     overflow-y: auto;
 }
 
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header-container h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #1890ff;
+}
+
+.smart-edit-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.smart-edit-button {
+    white-space: nowrap;
+}
+
 .code-block {
     margin-bottom: 20px;
+}
+
+.code-tabs {
+    width: 100%;
 }
 
 .code-block h3 {
@@ -14,16 +40,26 @@
     color: #333;
 }
 
-.content-container h2 {
-    margin-bottom: 20px;
-    font-size: 24px;
-    color: #1890ff;
-}
-
 /* 自定义 SyntaxHighlighter 样式 */
 .content-container pre {
     border-radius: 4px;
     padding: 16px;
     font-size: 14px;
     line-height: 1.5;
+}
+
+.smart-edit-highlight {
+    position: relative;
+}
+
+.smart-edit-highlight::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px dashed hsl(210, 100%, 50%); /* 蓝色虚线边框 */
+    pointer-events: none;
+    z-index: 9999;
 }
