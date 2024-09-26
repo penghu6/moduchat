@@ -1,4 +1,5 @@
 import request from "./request";
+import { escapeRegExp } from "../utils/utils";  
 
 export async function chatCompletion(messages, model = "gpt-4o") {
   try {
@@ -59,4 +60,122 @@ export async function chatCompletion(messages, model = "gpt-4o") {
     throw error;
   }
 }
+
+/**
+ * reviseComponent 函数
+ * 
+ * 这个函数用于修改React组件代码。它通过OpenAI的API发送当前代码和修改提示，
+ * 获取AI生成的代码差异，然后应用这些差异来更新组件代码。
+ * 
+ * @param {string} prompt - 描述如何修改组件的提示信息
+ * @param {string} code - 当前的组件代码
+ * @param {string} [model="gpt-4o"] - 使用的OpenAI模型，默认为"gpt-4o"
+ * @returns {string} 返回修改后的组件代码
+ * @throws {Error} 如果API返回无效结果、没有找到有效的代码差异，或发生其他错误
+ */
+export async function reviseComponent(prompt, code, model = "gpt-4o") {
+  try {
+    const systemMessage = [
+      {
+        role: "system",
+        content: [
+          "You are an AI programming assistant.",
+          "Follow the user's requirements carefully & to the letter.",
+          "You're working on a react component using javascript and css.",
+          "Don't introduce any new components or files.",
+          "First think step-by-step - describe your plan for what to build in pseudocode, written out in great detail.",
+          "You must format every code change with an *edit block* like this:",
+          "```",
+          "<<<<<<< ORIGINAL",
+          "    # some comment",
+          "    # Func to multiply",
+          "    def mul(a,b)",
+          "=======",
+          "    # updated comment",
+          "    # Function to add",
+          "    def add(a,b):",
+          ">>>>>>> UPDATED",
+          "```",
+          "There can be multiple code changes.",
+          "Modify as few characters as possible and use as few characters as possible on the diff.",
+          "Minimize any other prose.",
+          "Keep your answers short and impersonal.",
+          "Never create a new component or file.",
+          `Always give answers by modifying the following code:\n\`\`\`tsx\n${code}\n\`\`\``,
+        ].join("\n"),
+      },
+      {
+        role: "user",
+        content: `${prompt}`,
+      },
+    ];
+    const enhancedMessages = [...systemMessage];
+    const response = await request({
+      url: "/v1/chat/completions",
+      method: "POST",
+      data: {
+        model,
+        messages: enhancedMessages,
+        temperature: 0,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+        max_tokens: 2000,
+        n: 1,
+      },
+    });
+    const choices = response.choices;
+
+    if (
+      !choices ||
+      choices.length === 0 ||
+      !choices[0] ||
+      !choices[0].message ||
+      !choices[0].message.content
+    ) {
+      throw new Error("OpenAI API 未返回有效选项");
+    }
+
+    const diff = choices[0].message.content;
+
+    if (!containsDiff(diff)) {
+      throw new Error("消息中未找到有效的代码差异");
+    }
+
+    const newCode = applyDiff(code, diff);
+
+    return newCode;
+  } catch (error) {
+    console.error("reviseComponent 函数出错:", error);
+    throw error; // 重新抛出错误，允许调用者处理
+  }
+}
+
+const containsDiff = (message) => {
+  return (
+    message.includes("<<<<<<< ORIGINAL") &&
+    message.includes(">>>>>>> UPDATED") &&
+    message.includes("=======\n")
+  );
+};
+
+const applyDiff = (code, diff) => {
+  const regex = /<<<<<<< ORIGINAL\n(.*?)=======\n(.*?)>>>>>>> UPDATED/gs;
+
+  let match;
+
+  while ((match = regex.exec(diff)) !== null) {
+    const [, before, after] = match;
+
+    let regex = escapeRegExp(before);
+    regex = regex.replaceAll(/\r?\n/g, "\\s+");
+    regex = regex.replaceAll(/\t/g, "");
+
+    const replaceRegex = new RegExp(regex);
+
+    code = code.replace(replaceRegex, after);
+  }
+
+  return code;
+};
 

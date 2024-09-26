@@ -32,7 +32,6 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
   useEffect(() => {
     if (codeBlocks && codeBlocks.js) {
       setCode(codeBlocks.js);
-      // 已移除 console.log('CodeBlocks JS:', codeBlocks.js);
     }
   }, [codeBlocks]);
 
@@ -42,27 +41,24 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
     }
   }, [code, isSmartEditMode]);
 
-  // 添加新的 useEffect 来打印 isSmartEditMode 的状态
   useEffect(() => {
     console.log('Smart Edit Mode in DynamicPreview:', isSmartEditMode);
   }, [isSmartEditMode]);
 
   const preprocessCode = (code) => {
-    let processedCode = code
+    return code
       .replace(/import\s+.*?from\s+['"].*?['"];?/g, '') // 去掉所有 import 语句
       .replace(/export\s+default\s+\w+;?/, '') // 去掉 export default 语句
       .replace(/const\s+\{\s*useState\s*,\s*useEffect\s*\}\s*=\s*React\s*;?/g, '') // 去掉 const { useState, useEffect } = React;
       .replace(/const\s+\{\s*useState\s*\}\s*=\s*React\s*;?/g, '') // 去掉 const { useState } = React;
       .replace(/import\s+React,\s*{\s*useState\s*}\s*from\s+['"]react['"];?/g, ''); // 去掉 import React, { useState } from 'react';
-    console.log("processedCode",processedCode)
-    return processedCode;
   };
 
   const updateIframeContent = () => {
     const iframeDoc = iframeRef.current.contentDocument;
     iframeDoc.open();
     iframeDoc.write(`
-       <!DOCTYPE html>
+      <!DOCTYPE html>
       <html>
         <head>
           <meta charset="UTF-8" />
@@ -72,32 +68,181 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
           <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
           <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
           <style>
-            body {
-              margin: 0;
-              padding: 0;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-              overflow: hidden;
+            :root {
+              --rp-select-color: 210, 100%, 50%;
+              --bd-dash-percent: 25%;
+              --bd-border-width: 2px;
+              --bd-gap-and-dash-length: 8px;
+              --bd-speed: 0px;
             }
-            #root {
-              padding: 0;
+
+            /* Make whole page (iframe) */
+            body.rp-focus-enabled * {
+              cursor: default !important;
+              user-select: none !important;
+            }
+
+            /* Selected element styles when clicking on an element when using "Focus & Edit" */
+            .rp-selected {
+              border-radius: 4px;
+              background-clip: border-box;
+              box-shadow:
+                0 4px 6px -1px rgb(0 0 0 / 0.1),
+                0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+              position: relative;
+              background: linear-gradient(
+                  90deg,
+                  hsl(var(--rp-select-color)) var(--bd-dash-percent),
+                  transparent calc(100% - var(--bd-dash-percent))
+                ),
+                linear-gradient(
+                  90deg,
+                  hsl(var(--rp-select-color)) var(--bd-dash-percent),
+                  transparent calc(100% - var(--bd-dash-percent))
+                ),
+                linear-gradient(
+                  0deg,
+                  hsl(var(--rp-select-color)) var(--bd-dash-percent),
+                  transparent calc(100% - var(--bd-dash-percent))
+                ),
+                linear-gradient(
+                  0deg,
+                  hsl(var(--rp-select-color)) var(--bd-dash-percent),
+                  transparent calc(100% - var(--bd-dash-percent))
+                );
+              background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+              background-size:
+                var(--bd-gap-and-dash-length) var(--bd-border-width),
+                var(--bd-gap-and-dash-length) var(--bd-border-width),
+                var(--bd-border-width) var(--bd-gap-and-dash-length),
+                var(--bd-border-width) var(--bd-gap-and-dash-length);
+              background-position:
+                0 0,
+                var(--bd-speed) 100%,
+                0 var(--bd-speed),
+                100% 0;
+              animation: border-dance 10s infinite linear;
+            }
+
+            @keyframes border-dance {
+              0% {
+                background-position:
+                  0 0,
+                  100% 100%,
+                  0 100%,
+                  100% 0;
+              }
+              100% {
+                background-position:
+                  100% 0,
+                  0 100%,
+                  0 0,
+                  100% 100%;
+              }
+            }
+
+            .rp-selected::after {
+              content: "";
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background-color: hsla(var(--rp-select-color), 0.1);
+              pointer-events: none;
+            }
+
+            /* Hover effect styles when enabling "Focus & Edit" */
+            .rp-hovered:not(.rp-selected) {
+              border-radius: 4px;
+              outline: 1px dashed #5048e5 !important;
+              position: relative;
+            }
+
+            .rp-hovered:not(.rp-selected)::after {
+              content: "";
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background-color: rgba(80, 72, 229, 0.03);
+              pointer-events: none;
+            }
+
+            .edit-input-container {
+              position: absolute;
+              z-index: 10;
+              width: 272px; /* 17rem * 16px/rem = 272px */
+              max-width: 90vw;
+            }
+
+            .edit-input-form {
+              position: relative;
+              margin-top: 0.75rem;
+              display: flex;
               width: 100%;
-              height: 100vh;
-              overflow: auto;
-              -webkit-overflow-scrolling: touch;
+              border-radius: 0.5rem;
+              box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
             }
-            /* 自定义滚动条样式 */
-            #root::-webkit-scrollbar {
-              width: 4px; /* 滚动条宽度 */
+
+            .edit-input-inner {
+              position: relative;
+              min-width: 0;
+              flex: 1 1 0%;
             }
-            #root::-webkit-scrollbar-track {
-              background: transparent; /* 滚动条轨道背景色 */
+
+            .edit-input-textarea-wrapper {
+              overflow: hidden;
+              border-radius: 0.5rem;
+              background-color: white;
+              border: 1px solid rgb(209, 213, 219); /* 直接应用边框 */
             }
-            #root::-webkit-scrollbar-thumb {
-              background: rgba(0, 0, 0, 0.5); /* 滚动条滑块背景色 */
-              border-radius: 2px; /* 滚动条滑块圆角 */
+
+            .edit-input-textarea {
+              display: block;
+              width: 100%;
+              resize: none;
+              border: 0;
+              background-color: transparent;
+              padding: 0.375rem 0.75rem;
+              color: rgb(17 24 39);
+              font-size: 0.875rem;
+              line-height: 1.5rem;
             }
-            #root::-webkit-scrollbar-thumb:hover {
-              background: rgba(0, 0, 0, 0.7); /* 滚动条滑块悬停背景色 */
+
+            .edit-input-textarea:focus {
+              outline: none;
+            }
+
+            .edit-input-textarea-wrapper:focus-within {
+              border-color: rgb(79, 70, 229); /* 聚焦时改变边框颜色 */
+              box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); /* 添加轻微的阴影效果 */
+            }
+
+            .edit-input-submit {
+              position: absolute;
+              right: 8px;
+              bottom: 8px;
+              display: inline-flex;
+              align-items: center;
+              border-radius: 6px;
+              background-color: rgb(79 70 229);
+              padding: 3px 5px;
+              font-size: 10px;
+              color: white;
+              box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            }
+
+            .edit-input-submit:hover {
+              background-color: rgb(67 56 202);
+            }
+
+            @media (min-width: 640px) {
+              .edit-input-textarea {
+                font-size: 0.875rem;
+                line-height: 1.5rem;
+              }
             }
           </style>
         </head>
@@ -106,10 +251,143 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
           <script type="text/babel">
             const { useState, useEffect, useRef } = React;
 
-            // 添加拖动功能
+            const EditInput = ({ top, left, onSubmit }) => {
+              const [input, setInput] = useState('');
+              const textareaRef = useRef(null);
+
+              useEffect(() => {
+                if (textareaRef.current) {
+                  textareaRef.current.focus();
+                }
+              }, []);
+
+              const handleSubmit = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSubmit(input);
+                setInput('');
+              };
+
+              const handleChange = (e) => {
+                e.stopPropagation();
+                setInput(e.target.value);
+              };
+
+              const handleKeyDown = (e) => {
+                if (e.key === 'Enter') {
+                  if (!e.shiftKey) {
+                    e.preventDefault(); // 防止默认的换行行为
+                    handleSubmit(e);
+                  }
+                }
+              };
+
+              const handleClick = (e) => {
+                e.stopPropagation();
+              };
+
+              return (
+                <div 
+                  className="edit-input-container" 
+                  style={{ top: \`\${top}px\`, left: '20px' }}
+                  onClick={handleClick}
+                >
+                  <div className="edit-input-form">
+                    <div className="edit-input-inner">
+                      <form onSubmit={handleSubmit}>
+                        <div className="edit-input-textarea-wrapper">
+                          <textarea
+                            ref={textareaRef}
+                            rows="3"
+                            value={input}
+                            onChange={handleChange}
+                            onKeyDown={handleKeyDown}
+                            className="edit-input-textarea"
+                            placeholder="Change the color of the element"
+                            onClick={handleClick}
+                          />
+                        </div>
+                        <button type="submit" className="edit-input-submit" onClick={handleClick}>
+                          Submit
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              );
+            };
+
             const DraggableComponent = ({ children, code }) => {
+              const [selectedElement, setSelectedElement] = useState(null);
+              const [inputPosition, setInputPosition] = useState({ top: 0, left: 0 });
+              const [showInput, setShowInput] = useState(false);
+
               const handleDragStart = (e) => {
                 e.dataTransfer.setData("text/plain", ${JSON.stringify(preprocessCode(code))});
+              };
+
+              useEffect(() => {
+                const handleMouseOver = (e) => {
+                  const hoveredElement = e.target.closest('[data-rs]');
+                  if (hoveredElement && !hoveredElement.classList.contains('rp-selected')) {
+                    hoveredElement.classList.add('rp-hovered');
+                  }
+                };
+
+                const handleMouseOut = (e) => {
+                  const hoveredElement = e.target.closest('[data-rs]');
+                  if (hoveredElement) {
+                    hoveredElement.classList.remove('rp-hovered');
+                  }
+                };
+
+                const handleClick = (e) => {
+                  if (e.target.closest('.edit-input-container')) {
+                    return;
+                  }
+
+                  const clickedElement = e.target.closest('[data-rs]');
+
+                  document.querySelectorAll('.rp-hovered').forEach(el => {
+                    el.classList.remove('rp-hovered');
+                  });
+
+                  if (clickedElement) {
+                    document.querySelectorAll('.rp-selected').forEach(el => {
+                      el.classList.remove('rp-selected');
+                    });
+                    clickedElement.classList.add('rp-selected');
+                    setSelectedElement(clickedElement);
+                    const rect = clickedElement.getBoundingClientRect();
+                    setInputPosition({ 
+                      top: rect.bottom, 
+                      left: Math.max(20, rect.left)
+                    });
+                    setShowInput(true);
+                  } else {
+                    document.querySelectorAll('.rp-selected').forEach(el => {
+                      el.classList.remove('rp-selected');
+                    });
+                    setSelectedElement(null);
+                    setShowInput(false);
+                  }
+                };
+
+                document.addEventListener('mouseover', handleMouseOver);
+                document.addEventListener('mouseout', handleMouseOut);
+                document.addEventListener('click', handleClick);
+
+                return () => {
+                  document.removeEventListener('mouseover', handleMouseOver);
+                  document.removeEventListener('mouseout', handleMouseOut);
+                  document.removeEventListener('click', handleClick);
+                };
+              }, []);
+
+              const handleInputSubmit = (input) => {
+                if (selectedElement) {
+                  selectedElement.style.color = input;
+                }
               };
 
               return (
@@ -124,10 +402,19 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
                   }}
                 >
                   {children}
+                  {showInput && (
+                    <EditInput
+                      top={inputPosition.top}
+                      left={inputPosition.left}
+                      onSubmit={handleInputSubmit}
+                    />
+                  )}
                 </div>
               );
             };
+
             ${preprocessCode(code)}
+            
             (function() {
               const componentName = Object.keys(window).find(key => 
                 window[key] && 
@@ -135,12 +422,16 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
                 /^[A-Z]/.test(key) && 
                 key !== 'React' &&
                 key !== 'ReactDOM' &&
-                key !== 'DraggableComponent'
+                key !== 'DraggableComponent' &&
+                key !== 'EditInput'
               );
-  console.log("componentName",componentName)
+              console.log("componentName",componentName);
+              
               if (componentName) {
                 ReactDOM.render(
-                  React.createElement(DraggableComponent, null, React.createElement(window[componentName])), 
+                  React.createElement(DraggableComponent, { code: ${JSON.stringify(code)} }, 
+                    React.createElement(window[componentName])
+                  ), 
                   document.getElementById('root')
                 );
               } else {
