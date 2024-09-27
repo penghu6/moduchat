@@ -23,7 +23,6 @@ export async function chatCompletion(messages, model = "gpt-4o") {
       {
         role: "user",
         content: [
-          `- Component Name: Section`,
           `- Do not use libraries or imports other than React.`,
           `- Use JavaScript, not TypeScript. Do not include any TypeScript syntax or type annotations.`,
           `- Adapt to mobile with a maximum width of 323px and a maximum height of 624px. Ensure that the container of the component does not have fixed width and height.`,

@@ -184,7 +184,7 @@ const UserComponent = () => {
     const componentData = {
       id: component.id,
       name: component.name,
-      component: component.component.toString()
+      component: component.component
     };
 
     e.dataTransfer.setData('customize-component', JSON.stringify(componentData));

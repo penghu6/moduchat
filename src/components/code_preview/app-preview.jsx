@@ -1,8 +1,9 @@
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector, useDispatch,useEffect, useState } from 'react-redux';
 import { addComponent, removeComponent } from '../../redux/app-preview-slice';
 import '../../css/AppPreview.css';
 import { DeleteOutlined } from '@ant-design/icons';
+import { compileComponent } from '../../utils/tools';
 const AppPreview = () => {
   const components = useSelector(state => state.appPreview.components);
   const dispatch = useDispatch();
@@ -14,7 +15,8 @@ const AppPreview = () => {
   const handleDrop = (e) => {
     e.preventDefault();
     const componentData = JSON.parse(e.dataTransfer.getData('customize-component')) ;
-    console.log('Dropped component data:', componentData);
+    console.log('Component to be added:', componentToAdd);
+    return;
     const componentToAdd = {...componentData, component: componentData.component.toString().replace("function ", '')};
     console.log('Component to be added:', componentToAdd);
     dispatch(addComponent(componentToAdd));
@@ -49,7 +51,7 @@ const AppPreview = () => {
               components.map((ComponentData, index) => (
                 <div key={index} style={{ position: 'relative' }}>
                   {typeof ComponentData.component === 'string'
-                    ? React.createElement(eval(`(${ComponentData.component})`))
+                    ? React.createElement(ComponentData.component)
                     : React.createElement(ComponentData.component)}
                   <DeleteOutlined
                     onClick={() => handleRemoveComponent(index)}
