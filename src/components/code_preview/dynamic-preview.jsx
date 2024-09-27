@@ -28,6 +28,7 @@ class ErrorBoundary extends React.Component {
 
 function DynamicPreview({ codeBlocks, isSmartEditMode }) {
   const [code, setCode] = useState('');
+  const [smartEditMode, setSmartEditMode] = useState(false);
   const iframeRef = useRef(null);
 
   useEffect(() => {
@@ -37,13 +38,11 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
   }, [codeBlocks]);
 
   useEffect(() => {
+    console.log('SmartEditMode in DynamicPreview:', isSmartEditMode);
+    setSmartEditMode(isSmartEditMode);
     if (iframeRef.current) {
-      updateIframeContent();
+      iframeRef.current.contentWindow.postMessage({ type: 'updateSmartEditMode', value: isSmartEditMode }, '*');
     }
-  }, [code]);
-
-  useEffect(() => {
-    console.log('Smart Edit Mode in DynamicPreview:', isSmartEditMode);
   }, [isSmartEditMode]);
 
   const preprocessCode = (code) => {
@@ -79,6 +78,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
           <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
           <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
           <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+          <script src="https://cdn.tailwindcss.com"></script>
           <style>
             :root {
               --rp-select-color: 210, 100%, 50%;
@@ -256,6 +256,32 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
                 line-height: 1.5rem;
               }
             }
+
+            /* 添加自定义滚动条样式 */
+            ::-webkit-scrollbar {
+              width: 4px;
+              height: 4px;
+            }
+
+            ::-webkit-scrollbar-track {
+              background: rgba(0, 0, 0, 0.1);
+              border-radius: 2px;
+            }
+
+            ::-webkit-scrollbar-thumb {
+              background: rgba(0, 0, 0, 0.3);
+              border-radius: 2px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+              background: rgba(0, 0, 0, 0.5);
+            }
+
+            /* 确保内容可以滚动 */
+            #root {
+              height: 100%;
+              overflow-y: auto;
+            }
           </style>
         </head>
         <body>
@@ -329,7 +355,8 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
               );
             };
 
-            const DraggableComponent = ({ children, code, onRevise }) => {
+            const DraggableComponent = ({ children, code, onRevise, initialSmartEditMode }) => {
+              const [smartEditMode, setSmartEditMode] = useState(initialSmartEditMode);
               const [selectedElement, setSelectedElement] = useState(null);
               const [inputPosition, setInputPosition] = useState({ top: 0, left: 0 });
               const [showInput, setShowInput] = useState(false);
@@ -339,6 +366,28 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
               };
 
               useEffect(() => {
+                console.log('SmartEditMode in DraggableComponent:', smartEditMode);
+                
+                const handleMessage = (event) => {
+                  if (event.data.type === 'updateSmartEditMode') {
+                    console.log('Received new smartEditMode:', event.data.value);
+                    setSmartEditMode(event.data.value);
+                  }
+                };
+
+                window.addEventListener('message', handleMessage);
+
+                if (!smartEditMode) {
+                  document.querySelectorAll('.rp-hovered, .rp-selected').forEach(el => {
+                    el.classList.remove('rp-hovered', 'rp-selected');
+                  });
+                  setSelectedElement(null);
+                  setShowInput(false);
+                  return () => {
+                    window.removeEventListener('message', handleMessage);
+                  };
+                }
+
                 const handleMouseOver = (e) => {
                   const hoveredElement = e.target.closest('[data-rs]');
                   if (hoveredElement && !hoveredElement.classList.contains('rp-selected')) {
@@ -390,11 +439,12 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
                 document.addEventListener('click', handleClick);
 
                 return () => {
+                  window.removeEventListener('message', handleMessage);
                   document.removeEventListener('mouseover', handleMouseOver);
                   document.removeEventListener('mouseout', handleMouseOut);
                   document.removeEventListener('click', handleClick);
                 };
-              }, []);
+              }, [smartEditMode]);
 
               const handleInputSubmit = (prompt) => {
                 onRevise(prompt);
@@ -412,7 +462,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
                   }}
                 >
                   {children}
-                  {showInput && (
+                  {showInput && smartEditMode && (
                     <EditInput
                       top={inputPosition.top}
                       left={inputPosition.left}
@@ -436,7 +486,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
                 key !== 'DraggableComponent' &&
                 key !== 'EditInput'
               );
-              console.log("componentName",componentName);
+              console.log("componentName", componentName);
               
               if (componentName) {
                 ReactDOM.render(
@@ -444,7 +494,8 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
                     code: ${JSON.stringify(code)},
                     onRevise: (prompt) => {
                       window.parent.postMessage({ type: 'reviseComponent', prompt }, '*');
-                    }
+                    },
+                    initialSmartEditMode: ${smartEditMode}
                   }, 
                     React.createElement(window[componentName])
                   ), 
@@ -462,6 +513,12 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
     `);
     iframeDoc.close();
   };
+
+  useEffect(() => {
+    if (iframeRef.current) {
+      updateIframeContent();
+    }
+  }, [code, smartEditMode]);
 
   useEffect(() => {
     const handleMessage = (event) => {

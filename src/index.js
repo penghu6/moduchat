@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 
 import 'antd/dist/reset.css';
+import './css/index.css';
 import zhCN from "antd/es/locale/zh_CN"; // 中文语言包
 import { ConfigProvider } from "antd";
 import store from "./redux/store";

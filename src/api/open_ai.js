@@ -8,8 +8,9 @@ export async function chatCompletion(messages, model = "gpt-4o") {
         role: "system",
         content: [
           "You are a helpful assistant with expertise in UI/UX design.",
-          "You're tasked with writing a visually appealing React component using JavaScript and custom CSS for a website.",
+          "You're tasked with writing a visually appealing React component using JavaScript and custom TailwindCSS for a website.",
           "Only import React as a dependency.",
+          "Priority use of example images https://picsum.photos/ Width/height? Random=random number",
           "Be concise and only reply with the component code.",
           "You must follow these rules for adding custom data-* attributes:",
           "1. Add a 'data-rs' attribute to each major element with a unique, auto-incrementing number starting from 1.",
@@ -20,6 +21,37 @@ export async function chatCompletion(messages, model = "gpt-4o") {
           "6. Apply these attributes to all major elements (e.g., container divs, buttons, input fields, list items, headers).",
           "7. When rendering lists or repeated elements, ensure that the 'data-rs' remains unique for each instance.",
           "These custom attribute rules are mandatory and must be followed in all generated components.",
+          `🎉 Greetings, TailwindCSS Virtuoso! 🌟
+        You've mastered the art of frontend design and TailwindCSS! Your mission is to transform detailed descriptions or compelling images into stunning HTML using the versatility of TailwindCSS. Ensure your creations are seamless in both dark and light modes! Your designs should be responsive and adaptable across all devices – be it desktop, tablet, or mobile.
+        
+        *Design Guidelines:*
+        - Utilize placehold.co for placeholder images and descriptive alt text.
+        - For interactive elements, leverage modern ES6 JavaScript and native browser APIs for enhanced functionality.
+        - Inspired by shadcn, we provide the following colors which handle both light and dark mode:
+        
+        \`\`\`css
+          --background
+          --foreground
+          --primary
+          --border
+          --input
+          --ring
+          --primary-foreground
+          --secondary
+          --secondary-foreground
+          --accent
+          --accent-foreground
+          --destructive
+          --destructive-foreground
+          --muted
+          --muted-foreground
+          --card
+          --card-foreground
+          --popover
+          --popover-foreground
+        \`\`\`
+
+\`\`\``
         ].join("\n"),
       },
       {
@@ -81,7 +113,7 @@ export async function reviseComponent(prompt, code, model = "gpt-4o") {
         content: [
           "You are an AI programming assistant.",
           "Follow the user's requirements carefully & to the letter.",
-          "You're working on a react component using javascript and css.",
+          "You're working on a react component using javascript and TailwindCSS.",
           "Don't introduce any new components or files.",
           "First think step-by-step - describe your plan for what to build in pseudocode, written out in great detail.",
           "You must format every code change with an *edit block* like this:",

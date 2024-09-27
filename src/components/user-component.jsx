@@ -191,8 +191,8 @@ const UserComponent = () => {
   };
 
   const handleDrop = (e) => {
-    e.preventDefault();
     const codeData = e.dataTransfer.getData('text/plain');
+    console.log('handleDrop', codeData);
     let newComponentCode;
     
     try {
@@ -231,6 +231,7 @@ const UserComponent = () => {
             <div
               className="component-item"
               draggable
+              onDrop={handleDrop}
               onDragStart={(e) => handleDragStart(e, component.id)}
             >
               <div className="component-preview">
