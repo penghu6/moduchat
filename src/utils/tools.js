@@ -78,9 +78,20 @@ export const getAllKeys = () => {
  */
 export const compileComponent = (code) => {
   try {
+    // 如果 code 不是字符串，尝试将其转换为字符串
+    if (typeof code !== 'string') {
+      code = code.toString();
+    }
+
+    // 使用模板生成代码（如果需要）
+    if (code.trim() === '') {
+      code = generateComponentCode();
+    }
+
     // 使用 Babel 转换代码
     const transformedCode = Babel.transform(code, {
       presets: ['react'],
+      plugins: ['transform-modules-commonjs']
     }).code;
 
     // 移除 import 和 export 语句
@@ -89,7 +100,7 @@ export const compileComponent = (code) => {
       .replace(/export\s+default\s+\w+;?/, '');
 
     // 提取组件名称
-    const componentNameMatch = code.match(/function\s+(\w+)\s*\(/);
+    const componentNameMatch = code.match(/(?:function|const)\s+(\w+)\s*(?:=|\()/);
     const componentName = componentNameMatch ? componentNameMatch[1] : 'AnonymousComponent';
 
     // 使用 Function 构造函数动态创建组件

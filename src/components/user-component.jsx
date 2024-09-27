@@ -186,13 +186,13 @@ const UserComponent = () => {
       name: component.name,
       component: component.component.toString()
     };
-    console.log('handleDragStart started', JSON.stringify(componentData));
+
     e.dataTransfer.setData('customize-component', JSON.stringify(componentData));
   };
 
   const handleDrop = (e) => {
     const codeData = e.dataTransfer.getData('text/plain');
-    console.log('handleDrop', codeData);
+   
     let newComponentCode;
     
     try {
@@ -224,14 +224,14 @@ const UserComponent = () => {
   };
 
   return (
-    <div className="right-container">
+    <div className="right-container" onDrop={handleDrop} onDragOver={handleDragOver}>
       <div className="component-list">
         {components.map((component) => (
           <Tooltip key={component.id} title={component.name} placement="top">
             <div
               className="component-item"
               draggable
-              onDrop={handleDrop}
+              
               onDragStart={(e) => handleDragStart(e, component.id)}
             >
               <div className="component-preview">

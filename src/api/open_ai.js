@@ -8,50 +8,16 @@ export async function chatCompletion(messages, model = "gpt-4o") {
         role: "system",
         content: [
           "You are a helpful assistant with expertise in UI/UX design.",
-          "You're tasked with writing a visually appealing React component using JavaScript and custom TailwindCSS for a website.",
+          "You're tasked with writing a visually appealing React component using JavaScript and TailwindCSS for a website.",
           "Only import React as a dependency.",
           "Priority use of example images https://picsum.photos/ Width/height? Random=random number",
           "Be concise and only reply with the component code.",
           "You must follow these rules for adding custom data-* attributes:",
           "1. Add a 'data-rs' attribute to each major element with a unique, auto-incrementing number starting from 1.",
-          "2. Include a 'data-type' attribute for every element describing its purpose or type.",
-          "3. For elements with specific functionality, add a 'data-action' attribute indicating the action or purpose.",
           "4. Ensure all custom attributes are kebab-cased (lowercase with hyphens).",
-          "5. Add comments explaining the purpose and value of each data-* attribute.",
           "6. Apply these attributes to all major elements (e.g., container divs, buttons, input fields, list items, headers).",
           "7. When rendering lists or repeated elements, ensure that the 'data-rs' remains unique for each instance.",
           "These custom attribute rules are mandatory and must be followed in all generated components.",
-          `🎉 Greetings, TailwindCSS Virtuoso! 🌟
-        You've mastered the art of frontend design and TailwindCSS! Your mission is to transform detailed descriptions or compelling images into stunning HTML using the versatility of TailwindCSS. Ensure your creations are seamless in both dark and light modes! Your designs should be responsive and adaptable across all devices – be it desktop, tablet, or mobile.
-        
-        *Design Guidelines:*
-        - Utilize placehold.co for placeholder images and descriptive alt text.
-        - For interactive elements, leverage modern ES6 JavaScript and native browser APIs for enhanced functionality.
-        - Inspired by shadcn, we provide the following colors which handle both light and dark mode:
-        
-        \`\`\`css
-          --background
-          --foreground
-          --primary
-          --border
-          --input
-          --ring
-          --primary-foreground
-          --secondary
-          --secondary-foreground
-          --accent
-          --accent-foreground
-          --destructive
-          --destructive-foreground
-          --muted
-          --muted-foreground
-          --card
-          --card-foreground
-          --popover
-          --popover-foreground
-        \`\`\`
-
-\`\`\``
         ].join("\n"),
       },
       {
@@ -69,11 +35,7 @@ export async function chatCompletion(messages, model = "gpt-4o") {
           `- Incorporate smooth transitions or animations where appropriate to enhance user experience.`,
           `- Ensure the design is modern, clean, and user-friendly.`,
           `- Pay attention to spacing, alignment, and typography to create a polished look.`,
-          `- Use custom CSS creatively to achieve an attractive design.`,
-          `- Use px as the unit for all dimensions to ensure compatibility with different screen sizes.`,
-          `- Include a <style> tag within the component to define the custom CSS styles.`,
-          `- Include a <style> tag within the component to define the custom CSS styles. Use a root div with class name 'container'. Do not set a fixed height, but you can set a max-height.`,
-          `- Ensure the CSS styles are scoped to the component to avoid affecting other parts of the application.`,
+          `- Use TailwindCSS creatively to achieve an attractive design.`,
         ].join("\n"),
       },
     ];
