@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import * as Babel from '@babel/standalone';
+import * as ReactModule from 'react';
+import PropTypes from 'prop-types';
 
 /**
  * 将 JSON 数据存储到本地存储
@@ -113,6 +115,46 @@ export const compileComponent = (code) => {
     return ComponentFunction(React);
   } catch (error) {
     console.error('编译组件时出错:', error);
+    return null;
+  }
+};
+
+export const transformComponentCode = (code) => {
+  try {
+    // 移除 import 语句
+    const codeWithoutImports = code.replace(/import.*?;/g, '');
+
+    // 提取组件名称
+    const componentNameMatch = codeWithoutImports.match(/const\s+(\w+)\s*=/);
+    const componentName = componentNameMatch ? componentNameMatch[1] : 'DynamicComponent';
+
+    // 移除 export 语句
+    const codeWithoutExports = codeWithoutImports.replace(/export\s+default\s+\w+;?/, '');
+
+    // 包装代码
+    const wrappedCode = `
+      function create${componentName}(React) {
+        const { useState, useEffect, useCallback } = React;
+        ${codeWithoutExports}
+        return ${componentName};
+      }
+    `;
+
+    // 使用 Babel 转换包装后的代码
+    const transformedCode = Babel.transform(wrappedCode, {
+      presets: ['env', 'react'],
+    }).code;
+
+    // 创建一个新的函数来执行转换后的代码
+    const ComponentFunction = new Function('React', 'PropTypes', `
+      ${transformedCode}
+      return create${componentName}(React);
+    `);
+
+    // 执行函数，获取生成的组件
+    return ComponentFunction(ReactModule, PropTypes);
+  } catch (error) {
+    console.error('Error transforming component code:', error);
     return null;
   }
 };
