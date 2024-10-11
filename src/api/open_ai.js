@@ -1,8 +1,9 @@
 import request from "./request";
 import { escapeRegExp } from "../utils/utils";  
 
-export async function chatCompletion(messages, model = "gpt-4o") {
+export async function chatCompletion(messages, imageFile = null) {
   try {
+    const model = "gpt-4-vision-preview";
     const systemMessage = [
       {
         role: "system",
@@ -18,6 +19,8 @@ export async function chatCompletion(messages, model = "gpt-4o") {
           "6. Apply these attributes to all major elements (e.g., container divs, buttons, input fields, list items, headers).",
           "7. When rendering lists or repeated elements, ensure that the 'data-rs' remains unique for each instance.",
           "These custom attribute rules are mandatory and must be followed in all generated components.",
+          "Be concise and only reply with code.",
+          "Don't use loops to generate dynamic data",
         ].join("\n"),
       },
       {
@@ -26,7 +29,7 @@ export async function chatCompletion(messages, model = "gpt-4o") {
           `- Do not use libraries or imports other than React.`,
           `- Use JavaScript, not TypeScript. Do not include any TypeScript syntax or type annotations.`,
           `- Adapt to mobile with a maximum width of 323px and a maximum height of 624px. Ensure that the container of the component does not have fixed width and height.`,
-          `- Have any dynamic data. Use placeholders as data. Do not use props.`,
+          `- Don't use loops to generate dynamic data`,
           `- Write only a single component. Do not include ReactDOM.render or any root rendering code.`,
           `- Use React hooks for state management and side effects.`,
           `- Focus on creating a visually appealing and aesthetically pleasing design.`,
@@ -35,16 +38,32 @@ export async function chatCompletion(messages, model = "gpt-4o") {
           `- Ensure the design is modern, clean, and user-friendly.`,
           `- Pay attention to spacing, alignment, and typography to create a polished look.`,
           `- Use TailwindCSS creatively to achieve an attractive design.`,
+          `- Do not have any dynamic data. Use placeholders as data. Do not use props.`,
+          `- Write only a single component.`,
         ].join("\n"),
       },
     ];
-    const enhancedMessages = [...systemMessage, ...messages];
+
+    if (imageFile) {
+      const base64Image = await convertImageToBase64(imageFile);
+      systemMessage.push({
+        role: 'user',
+        content: [
+          { type: "text", text: messages.map(msg => msg.content).join(' ') },
+          { type: "image_url", image_url: { "url": `data:image/jpeg;base64,${base64Image}` } }
+        ]
+      });
+    } else {
+      systemMessage.push(...messages);
+    }
+
     const response = await request({
       url: "/v1/chat/completions",
       method: "POST",
       data: {
         model,
-        messages: enhancedMessages,
+        messages: systemMessage,
+        max_tokens: 4096,
       },
     });
     return response.choices[0].message.content;
@@ -52,6 +71,19 @@ export async function chatCompletion(messages, model = "gpt-4o") {
     console.error("Error in chatCompletion:", error);
     throw error;
   }
+}
+
+// 辅助函数：将图片文件转换为 base64 编码
+function convertImageToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const base64String = reader.result.split(',')[1];
+      resolve(base64String);
+    };
+    reader.onerror = (error) => reject(error);
+  });
 }
 
 /**
@@ -76,6 +108,7 @@ export async function reviseComponent(prompt, code, model = "gpt-4o") {
           "Follow the user's requirements carefully & to the letter.",
           "You're working on a react component using javascript and TailwindCSS.",
           "Don't introduce any new components or files.",
+          "Style modifications exist, use in-line styles.",
           "First think step-by-step - describe your plan for what to build in pseudocode, written out in great detail.",
           "You must format every code change with an *edit block* like this:",
           "```",
@@ -171,4 +204,3 @@ const applyDiff = (code, diff) => {
 
   return code;
 };
-

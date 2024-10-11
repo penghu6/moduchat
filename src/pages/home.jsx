@@ -14,7 +14,7 @@ function Home() {
         <Left />
       </div>
       <AntdContent className="content">
-        <Test />
+        <Content />
       </AntdContent>
       <div className="right-sidebar">
         <Right />

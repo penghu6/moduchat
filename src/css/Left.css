@@ -18,3 +18,65 @@
   padding: 2px 4px;
   border-radius: 3px;
 }
+
+.send-icon {
+  transition: transform 0.3s ease;
+}
+
+.send-icon.sending {
+  transform: rotate(360deg);
+}
+
+.ai-input-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    position: relative;
+}
+
+.input-wrapper {
+    flex-grow: 1;
+    position: relative;
+}
+
+.ant-input-textarea {
+    width: 100%;
+}
+
+.image-preview {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    padding: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-height: 150px;
+    overflow: hidden;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 140px;
+    object-fit: contain;
+}
+
+.remove-image-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 50%;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.remove-image-button:hover {
+    background: rgba(255, 255, 255, 0.9);
+}

@@ -4,9 +4,9 @@ import { chatCompletion } from '../api/open_ai';
 // 定义一个异步 thunk，用于发送消息并获取 AI 的回复
 export const sendMessage = createAsyncThunk(
   'chatAi/sendMessage',
-  async (message, { getState }) => {
+  async ({ text, image }, { getState }) => {
     const { messages } = getState().chatAi;
-    const response = await chatCompletion([...messages, { role: 'user', content: message }]);
+    const response = await chatCompletion([...messages, { role: 'user', content: text }], image);
     return response;
   }
 );

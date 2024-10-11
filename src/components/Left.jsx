@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Input, message, Avatar } from 'antd';
-import { SendOutlined, UserOutlined, RobotOutlined } from '@ant-design/icons';
+import { Input, message, Avatar, Upload, Button } from 'antd';
+import { SendOutlined, UserOutlined, RobotOutlined, PictureOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { sendMessage, addMessage } from '../redux/chat-ai-slice';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -9,18 +9,21 @@ import '../css/Left.css';
 
 function PageLeft() {
     const [input, setInput] = useState('');
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
     const dispatch = useDispatch();
     const { messages, isLoading, error } = useSelector(state => state.chatAi);
     const messagesEndRef = useRef(null);
     const messagesContainerRef = useRef(null);
+    const textAreaRef = useRef(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     const handleSend = async () => {
-        if (!input.trim()) {
-            message.warning('请输入内容');
+        if (!input.trim() && !imageFile) {
+            message.warning('请输入内容或上传图片');
             return;
         }
 
@@ -29,11 +32,38 @@ function PageLeft() {
         setInput('');
 
         try {
-            await dispatch(sendMessage(input)).unwrap();
+            await dispatch(sendMessage({ text: input, image: imageFile })).unwrap();
+            setImageFile(null);
         } catch (error) {
             console.error('Error:', error);
             message.error('发送失败，请稍后重试');
         }
+    };
+
+    const handleImageUpload = (info) => {
+        const file = info.file.originFileObj;
+        if (file) {
+            setImageFile(file);
+            message.success(`${file.name} 上传成功`);
+        } else {
+            message.error('上传失败，请重试');
+        }
+    };
+
+    const handlePaste = (event) => {
+        const items = event.clipboardData.items;
+        for (let item of items) {
+            if (item.type.indexOf('image') !== -1) {
+                const file = item.getAsFile();
+                setImageFile(file);
+                break;
+            }
+        }
+    };
+
+    const removeImage = () => {
+        setImageFile(null);
+        setImagePreviewUrl(null);
     };
 
     useEffect(() => {
@@ -47,6 +77,16 @@ function PageLeft() {
 
         return () => observer.disconnect();
     }, []);
+
+    useEffect(() => {
+        if (imageFile) {
+            const objectUrl = URL.createObjectURL(imageFile);
+            setImagePreviewUrl(objectUrl);
+
+            // 清理函数
+            return () => URL.revokeObjectURL(objectUrl);
+        }
+    }, [imageFile]);
 
     return (
         <div className="LeftContainer">
@@ -86,27 +126,44 @@ function PageLeft() {
                 <div ref={messagesEndRef} />
             </div>
             <div className="ai-input-container">
-                <Input.TextArea
-                    placeholder="说出你的需求..."
-                    autoSize={{ minRows: 3, maxRows: 5 }}
-                    value={input}
-                    onChange={(e) => {
-                        setInput(e.target.value)
-                    }}
-                    onPressEnter={(e) => {
-                        if (!e.shiftKey) {
-                            e.preventDefault();
-                            handleSend();
-                        }
-                    }}
-                    onScroll={(e) => {
-                        const target = e.target;
-                        if (target.scrollHeight - target.scrollTop === target.clientHeight) {
-                            target.scrollTop = target.scrollHeight;
-                        }
-                    }}
-                />
-                <SendOutlined className="send-icon" onClick={handleSend} />
+                <Upload
+                    accept="image/*"
+                    showUploadList={false}
+                    beforeUpload={() => false}
+                    onChange={handleImageUpload}
+                >
+                    <Button icon={<PictureOutlined />} />
+                </Upload>
+                <div className="input-wrapper">
+                    <Input.TextArea
+                        ref={textAreaRef}
+                        placeholder="说出你的需求..."
+                        autoSize={{ minRows: 3, maxRows: 5 }}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onPaste={handlePaste}
+                        onPressEnter={(e) => {
+                            if (!e.shiftKey) {
+                                e.preventDefault();
+                                handleSend();
+                            }
+                        }}
+                    />
+                    {imagePreviewUrl && (
+                        <div className="image-preview">
+                            <img 
+                                src={imagePreviewUrl}
+                                alt="预览" 
+                            />
+                            <Button 
+                                icon={<CloseCircleOutlined />} 
+                                onClick={removeImage}
+                                className="remove-image-button"
+                            />
+                        </div>
+                    )}
+                </div>
+                <SendOutlined className={`send-icon ${isLoading ? 'sending' : ''}`} onClick={handleSend} />
             </div>
         </div>
     );
