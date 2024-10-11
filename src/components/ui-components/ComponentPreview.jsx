@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector, useDispatch,useEffect, useState } from 'react-redux';
 import { addComponent, removeComponent } from '../../redux/app-preview-slice';
-import '../../css/AppPreview.css';
+import '../../css/ComponentPreview.css';
 import { DeleteOutlined } from '@ant-design/icons';
 import { compileComponent } from '../../utils/tools';
 const AppPreview = () => {

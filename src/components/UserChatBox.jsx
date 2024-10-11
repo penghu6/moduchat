@@ -5,22 +5,29 @@ import { SendOutlined, UserOutlined, RobotOutlined, PictureOutlined, CloseCircle
 import { sendMessage, addMessage } from '../redux/chat-ai-slice';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import '../css/Left.css'; 
+import '../css/UserChatBox.css'; 
 
-function PageLeft() {
+function UserChatBox() {
+    // 定义状态变量
     const [input, setInput] = useState('');
     const [imageFile, setImageFile] = useState(null);
     const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+    
+    // 获取 Redux 的 dispatch 和 state
     const dispatch = useDispatch();
     const { messages, isLoading, error } = useSelector(state => state.chatAi);
+    
+    // 创建引用
     const messagesEndRef = useRef(null);
     const messagesContainerRef = useRef(null);
     const textAreaRef = useRef(null);
 
+    // 滚动到消息底部
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    // 处理发送消息
     const handleSend = async () => {
         if (!input.trim() && !imageFile) {
             message.warning('请输入内容或上传图片');
@@ -40,6 +47,7 @@ function PageLeft() {
         }
     };
 
+    // 处理图片上传
     const handleImageUpload = (info) => {
         const file = info.file.originFileObj;
         if (file) {
@@ -50,6 +58,7 @@ function PageLeft() {
         }
     };
 
+    // 处理粘贴事件
     const handlePaste = (event) => {
         const items = event.clipboardData.items;
         for (let item of items) {
@@ -61,15 +70,18 @@ function PageLeft() {
         }
     };
 
+    // 移除图片
     const removeImage = () => {
         setImageFile(null);
         setImagePreviewUrl(null);
     };
 
+    // 监听消息变化，自动滚动到底部
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
+    // 使用 MutationObserver 监听 DOM 变化
     useEffect(() => {
         const observer = new MutationObserver(scrollToBottom);
         const config = { childList: true, subtree: true };
@@ -78,6 +90,7 @@ function PageLeft() {
         return () => observer.disconnect();
     }, []);
 
+    // 监听图片文件变化，生成预览 URL
     useEffect(() => {
         if (imageFile) {
             const objectUrl = URL.createObjectURL(imageFile);
@@ -169,4 +182,4 @@ function PageLeft() {
     );
 }
 
-export default PageLeft;
+export default UserChatBox;

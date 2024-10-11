@@ -1,12 +1,12 @@
 import React from 'react';
 import { Card, Tabs } from 'antd';
-import SystemComponent from './system-component';
-import UserComponent from './user-component';
-import Animation from './animation';
+import SystemComponent from './SystemComponent';
+import UserComponent from './UserComponent';
+import Animation from './AnimationSelector';
 
 const { TabPane } = Tabs;
 
-const Right = () => {
+const ComponentToolbox = () => {
   return (
     <div>
       <Card>
@@ -20,8 +20,8 @@ const Right = () => {
             </Card>
           </TabPane>
           <TabPane tab="动画效果" key="2">
-            <Card type="inner" >
-              <div >
+            <Card type="inner">
+              <div>
                 <Animation />
               </div>
             </Card>
@@ -32,4 +32,4 @@ const Right = () => {
   );
 };
 
-export default Right;
+export default ComponentToolbox;

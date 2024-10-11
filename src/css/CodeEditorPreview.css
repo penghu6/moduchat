@@ -1,7 +1,9 @@
 .preview-container {
   /* 移除背景色 */
   border-radius: 20px;
-  padding: 30px;
+
+  padding-left: 20px;
+  padding-right: 20px;
   max-width: 410px;
   margin: 0 auto;
   /* 移除阴影 */

@@ -206,3 +206,29 @@
   flex-wrap: wrap;
   gap: 10px;
 }
+
+.animation-outer-container {
+  max-height: 800px; /* 设置最大高度 */
+  overflow-y: auto; /* 允许垂直滚动 */
+}
+
+.animation-inner-container {
+  padding: 10px;
+}
+
+.animation-category {
+  margin-bottom: 20px;
+}
+
+.animate-item {
+  cursor: pointer;
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.animate-item:hover {
+  background-color: #f0f0f0;
+}

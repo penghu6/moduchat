@@ -1,7 +1,7 @@
 import { Layout } from 'antd';
-import Left from "../components/left.jsx";
-import Right from "../components/right.jsx";
-import Content from "../components/content.jsx";
+import UserChatBox from "../components/UserChatBox.jsx";
+import Right from "../components/ComponentToolbox.jsx";
+import CodeWorkspace from "../components/CodeWorkspace.jsx";
 import Test from "../components/test.jsx";
 import "../css/App.css";
 
@@ -11,10 +11,10 @@ function Home() {
   return (
     <div className="App">
       <div className="left-sidebar">
-        <Left />
+        <UserChatBox />
       </div>
       <AntdContent className="content">
-        <Content />
+        <CodeWorkspace />
       </AntdContent>
       <div className="right-sidebar">
         <Right />

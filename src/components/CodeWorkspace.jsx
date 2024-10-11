@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Tabs, Button } from 'antd';  // 导入 Button
-import Editor from './code_preview/editor';
-import Preview from './code_preview/preview';
-import DynamicPreview from './code_preview/dynamic-preview'; 
-import AppPreview from './code_preview/app-preview';
+import Editor from './ui-components/CodeEditor';
+import DynamicPreview from './ui-components/CodeEditorPreview'; 
+import AppPreview from './ui-components/ComponentPreview';
 import { toggleSmartEditMode } from '../redux/content-slice';
-import '../css/Content.css';
+import '../css/CodeWorkspace.css';
 
-function Content() {
+function CodeWorkspace() {
     // 获取 dispatch 函数,用于触发 Redux actions
     const dispatch = useDispatch();
 
@@ -123,4 +122,4 @@ function Content() {
     );
 }
 
-export default Content;
+export default CodeWorkspace;

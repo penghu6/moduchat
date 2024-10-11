@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import animationList from '../data/animationList';
-import '../css/animation.css';
+import '../css/AnimationSelector.css';
 
-const Animation = () => {
+const AnimationSelector = () => {
+  // 选中的动画名称
   const [selectedAnimation, setSelectedAnimation] = useState('');
+  // 动画状态
   const [animating, setAnimating] = useState(false);
 
+  // 监听选中动画的变化，触发动画效果
   useEffect(() => {
     if (selectedAnimation) {
       setAnimating(true);
       const timer = setTimeout(() => {
         setAnimating(false);
-      }, 1000); // 动画持续时间
-      return () => clearTimeout(timer);
+      }, 1000); // 动画持续时间为 1000 毫秒
+      return () => clearTimeout(timer); // 清除定时器
     }
   }, [selectedAnimation]);
 
+  // 渲染单个动画项
   const renderAnimationItem = (item) => (
     <div 
       key={item.value} 
@@ -42,4 +46,4 @@ const Animation = () => {
   );
 };
 
-export default Animation;
+export default AnimationSelector;

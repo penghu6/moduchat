@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import '../../css/DynamicPreview.css';
+import '../../css/CodeEditorPreview.css';
 import { componentToString, stringToComponent } from '../../utils/tools';
 import { reviseComponent } from '../../api/open_ai';
+import { useDispatch } from 'react-redux';
+import { setCode } from '../../redux/content-slice';
 
+// 错误边界组件，用于捕获渲染错误
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -26,25 +29,29 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-function DynamicPreview({ codeBlocks, isSmartEditMode }) {
+function CodeEditorPreview({ codeBlocks, isSmartEditMode }) {
   const [code, setCode] = useState('');
   const [smartEditMode, setSmartEditMode] = useState(false);
   const iframeRef = useRef(null);
+  const dispatch = useDispatch();
 
+  // 更新代码状态
   useEffect(() => {
     if (codeBlocks && codeBlocks.js) {
       setCode(codeBlocks.js);
     }
   }, [codeBlocks]);
 
+  // 更新智能编辑模式状态
   useEffect(() => {
-    console.log('SmartEditMode in DynamicPreview:', isSmartEditMode);
+    console.log('SmartEditMode in CodeEditorPreview:', isSmartEditMode);
     setSmartEditMode(isSmartEditMode);
     if (iframeRef.current) {
       iframeRef.current.contentWindow.postMessage({ type: 'updateSmartEditMode', value: isSmartEditMode }, '*');
     }
   }, [isSmartEditMode]);
 
+  // 预处理代码，去掉不必要的语句
   const preprocessCode = (code) => {
     let processedCode = code
       .replace(/import\s+.*?from\s+['"].*?['"];?/g, '') // 去掉所有 import 语句
@@ -52,20 +59,22 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
       .replace(/const\s+\{\s*useState\s*,\s*useEffect\s*\}\s*=\s*React\s*;?/g, '') // 去掉 const { useState, useEffect } = React;
       .replace(/const\s+\{\s*useState\s*\}\s*=\s*React\s*;?/g, '') // 去掉 const { useState } = React;
       .replace(/import\s+React,\s*{\s*useState\s*}\s*from\s+['"]react['"];?/g, ''); // 去掉 import React, { useState } from 'react';
-      return processedCode;
+    return processedCode;
   };
 
+
+  // 处理组件修订
   const handleReviseComponent = async (prompt) => {
     try {
       const revisedCode = await reviseComponent(prompt, code);
       console.log('Revised code:', revisedCode);
-      // 如果你想更新预览，可以取消下面这行的注释
-       setCode(revisedCode);
+      dispatch(setCode(revisedCode)); // 更新 Redux store 中的代码状态
     } catch (error) {
       console.error('Error revising component:', error);
     }
   };
 
+  // 更新 iframe 内容
   const updateIframeContent = () => {
     const iframeDoc = iframeRef.current.contentDocument;
     iframeDoc.open();
@@ -81,6 +90,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
           <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
           <script src="https://cdn.tailwindcss.com"></script>
           <style>
+            /* 样式定义 */
             :root {
               --rp-select-color: 210, 100%, 50%;
               --bd-dash-percent: 25%;
@@ -89,13 +99,13 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
               --bd-speed: 0px;
             }
 
-            /* Make whole page (iframe) */
+            /* 整个页面 (iframe) */
             body.rp-focus-enabled * {
               cursor: default !important;
               user-select: none !important;
             }
 
-            /* Selected element styles when clicking on an element when using "Focus & Edit" */
+            /* 选中元素样式 */
             .rp-selected {
               border-radius: 4px;
               background-clip: border-box;
@@ -165,12 +175,13 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
               pointer-events: none;
             }
 
-            /* Hover effect styles when enabling "Focus & Edit" */
+            /* 悬停效果样式 */
             .rp-hovered:not(.rp-selected) {
               border-radius: 4px;
               outline: 1px dashed #5048e5 !important;
               position: relative;
             }
+
 
             .rp-hovered:not(.rp-selected)::after {
               content: "";
@@ -183,6 +194,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
               pointer-events: none;
             }
 
+            /* 编辑输入容器样式 */
             .edit-input-container {
               position: absolute;
               z-index: 10;
@@ -198,6 +210,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
               border-radius: 0.5rem;
               box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
             }
+
 
             .edit-input-inner {
               position: relative;
@@ -290,6 +303,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
           <script type="text/babel">
             const { useState, useEffect, useRef } = React;
 
+            // 编辑输入组件
             const EditInput = ({ top, left, onSubmit, selectedElement }) => {
               const [input, setInput] = useState('');
               const textareaRef = useRef(null);
@@ -325,6 +339,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
                 e.stopPropagation();
               };
 
+
               return (
                 <div 
                   className="edit-input-container" 
@@ -356,6 +371,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
               );
             };
 
+            // 可拖动组件
             const DraggableComponent = ({ children, code, onRevise, initialSmartEditMode }) => {
               const [smartEditMode, setSmartEditMode] = useState(initialSmartEditMode);
               const [selectedElement, setSelectedElement] = useState(null);
@@ -367,8 +383,6 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
               };
 
               useEffect(() => {
-              
-                
                 const handleMessage = (event) => {
                   if (event.data.type === 'updateSmartEditMode') {
                     console.log('Received new smartEditMode:', event.data.value);
@@ -516,6 +530,7 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
     iframeDoc.close();
   };
 
+  // 监听消息事件
   useEffect(() => {
     if (iframeRef.current) {
       updateIframeContent();
@@ -564,4 +579,5 @@ function DynamicPreview({ codeBlocks, isSmartEditMode }) {
   );
 }
 
-export default DynamicPreview;
+
+export default CodeEditorPreview;
