@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, message } from 'antd';
 import CodeMirror from '@uiw/react-codemirror';
 import { html } from '@codemirror/lang-html';
@@ -6,15 +6,32 @@ import { css } from '@codemirror/lang-css';
 import { javascript } from '@codemirror/lang-javascript';
 import { EditorView } from '@codemirror/view';
 import { CopyOutlined } from '@ant-design/icons';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateCodeHandle } from '../../redux/chatSlice';
+import { extractCodeBlocks } from '../../utils/utils';
 
-function CodeEditor({ setExtractedCode, setCodeBlocks }) {
-    // 从 Redux store 获取代码
-    const extractedCode = useSelector(state => state.content.code);
+
+function CodeEditor() {
+
+    // 存储提取的代码
+    const [code, setCode] = useState('');
+    const dispatch = useDispatch();
+
+    // 从 Redux store 中获取聊天消息
+    const { codeComponent } = useSelector(state => state.chat);
+
+    useEffect(() => {
+        if (codeComponent) {
+            setCode(
+                `${codeComponent.js}`
+            );
+        }
+    }, [codeComponent]);
+
 
     // 复制代码到剪贴板
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(extractedCode).then(() => {
+        navigator.clipboard.writeText(code).then(() => {
             message.success('代码已复制到剪贴板');
         }).catch(err => {
             console.error('无法复制代码: ', err);
@@ -22,12 +39,15 @@ function CodeEditor({ setExtractedCode, setCodeBlocks }) {
         });
     };
 
+
+
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
             {/* 复制代码按钮 */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-                <Button 
-                    icon={<CopyOutlined />} 
+                <Button
+                    icon={<CopyOutlined />}
                     onClick={copyToClipboard}
                 >
                     复制代码
@@ -35,7 +55,7 @@ function CodeEditor({ setExtractedCode, setCodeBlocks }) {
             </div>
             {/* CodeMirror 编辑器 */}
             <CodeMirror
-                value={extractedCode}
+                value={code}
                 height="700px"
                 extensions={[
                     EditorView.lineWrapping,
@@ -45,13 +65,14 @@ function CodeEditor({ setExtractedCode, setCodeBlocks }) {
                 ]}
                 theme="dark"
                 onChange={(value) => {
-                    // 更新提取的代码
-                    setExtractedCode(value);
+                    // console.log("value",value); 
+
                     // 更新代码块
-                    const updatedBlocks = {
-                        js: value
+                    const updatedCode = {
+                        js: value.toString()
                     };
-                    setCodeBlocks(updatedBlocks);
+                    dispatch(updateCodeHandle(updatedCode));
+                    setCode(updatedCode);
                 }}
             />
         </div>

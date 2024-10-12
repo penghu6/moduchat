@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Input, message, Avatar, Upload, Button } from 'antd';
 import { SendOutlined, UserOutlined, RobotOutlined, PictureOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import { sendMessage, addMessage } from '../redux/chat-ai-slice';
+import { sendMessage, addMessage, updateCodeHandle } from '../redux/chatSlice';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import '../css/UserChatBox.css'; 
@@ -15,7 +15,7 @@ function UserChatBox() {
     
     // 获取 Redux 的 dispatch 和 state
     const dispatch = useDispatch();
-    const { messages, isLoading, error } = useSelector(state => state.chatAi);
+    const { messages, isLoading, error } = useSelector(state => state.chat);
     
     // 创建引用
     const messagesEndRef = useRef(null);
@@ -36,15 +36,34 @@ function UserChatBox() {
 
         const userMessage = { role: 'user', content: input };
         dispatch(addMessage(userMessage));
+       
         setInput('');
 
         try {
-            await dispatch(sendMessage({ text: input, image: imageFile })).unwrap();
+            const response = await dispatch(sendMessage({ text: input, image: imageFile })).unwrap();
             setImageFile(null);
+     
+            // 提取代码块并更新 Redux 状态
+            const code = extractCodeBlocks(response);
+            
+            dispatch(updateCodeHandle(code));
         } catch (error) {
             console.error('Error:', error);
             message.error('发送失败，请稍后重试');
         }
+    };
+
+    // 提取代码块的函数
+    const extractCodeBlocks = (content) => {
+        const blocks = { html: '', css: '', js: '' };
+        const regex = /```(jsx?|react|javascript)\n([\s\S]*?)```/g;
+        let match;
+
+        while ((match = regex.exec(content)) !== null) {
+            const code = match[2].trim();
+            blocks.js += code + '\n\n';
+        }
+        return blocks;
     };
 
     // 处理图片上传

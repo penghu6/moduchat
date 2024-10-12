@@ -10,4 +10,20 @@ export const escapeRegExp = (str) => {
       .replace(/import\s+React,\s*{\s*useState\s*}\s*from\s+['"]react['"];?/g, ''); // 去掉 import React, { useState } from 'react';
       return processedCode;
   };
+
+  export const extractCodeBlocks = (content) => {
+    const blocks = {
+        js: ''
+    };
+
+    const regex = /```(jsx?|react|javascript)\n([\s\S]*?)```/g;
+    let match;
+
+    while ((match = regex.exec(content)) !== null) {
+        const code = match[2].trim();
+        blocks.js += code + '\n\n';
+    }
+    console.log("Extracted blocks:", blocks);
+    return blocks;
+};
   

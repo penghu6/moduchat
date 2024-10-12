@@ -8,11 +8,11 @@ export async function chatCompletion(messages, imageFile = null) {
       {
         role: "system",
         content: [
-          "You are a helpful assistant with expertise in UI/UX design.",
           "You're tasked with writing a visually appealing React component using JavaScript and TailwindCSS for a website.",
           "Only import React as a dependency.",
-          "Priority use of example images https://picsum.photos/ Width/height? Random=random number",
+          "Use stock photos from unsplash where appropriate, only valid URLs you know exist. Do not download the images, only link to them in image tags.",
           "Be concise and only reply with the component code.",
+          "Priority use of example images https://picsum.photos/ Width/height? Random=random number",
           "You must follow these rules for adding custom data-* attributes:",
           "1. Add a 'data-rs' attribute to each major element with a unique, auto-incrementing number starting from 1.",
           "4. Ensure all custom attributes are kebab-cased (lowercase with hyphens).",
@@ -21,11 +21,14 @@ export async function chatCompletion(messages, imageFile = null) {
           "These custom attribute rules are mandatory and must be followed in all generated components.",
           "Be concise and only reply with code.",
           "Don't use loops to generate dynamic data",
+          
         ].join("\n"),
       },
       {
         role: "user",
         content: [
+          `- By default, this template supports JSX syntax with Tailwind CSS classes, React hooks, and Lucide React for icons. Do not install other packages for UI themes, icons, etc unless absolutely necessary or I request them.`,
+          `-For all designs I ask you to make, have them be beautiful, not cookie cutter. Make webpages that are fully featured and worthy for production.`,
           `- Do not use libraries or imports other than React.`,
           `- Use JavaScript, not TypeScript. Do not include any TypeScript syntax or type annotations.`,
           `- Adapt to mobile with a maximum width of 323px and a maximum height of 624px. Ensure that the container of the component does not have fixed width and height.`,
@@ -40,6 +43,7 @@ export async function chatCompletion(messages, imageFile = null) {
           `- Use TailwindCSS creatively to achieve an attractive design.`,
           `- Do not have any dynamic data. Use placeholders as data. Do not use props.`,
           `- Write only a single component.`,
+          
         ].join("\n"),
       },
     ];

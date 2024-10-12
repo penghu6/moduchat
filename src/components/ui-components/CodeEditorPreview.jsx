@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import '../../css/CodeEditorPreview.css';
 import { componentToString, stringToComponent } from '../../utils/tools';
 import { reviseComponent } from '../../api/open_ai';
-import { useDispatch } from 'react-redux';
-import { setCode } from '../../redux/content-slice';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateCodeHandle } from '../../redux/chatSlice';
+import { extractCodeBlocks ,preprocessCode} from '../../utils/utils';
 
 // 错误边界组件，用于捕获渲染错误
 class ErrorBoundary extends React.Component {
@@ -29,18 +30,22 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-function CodeEditorPreview({ codeBlocks, isSmartEditMode }) {
+function CodeEditorPreview({ isSmartEditMode }) {
   const [code, setCode] = useState('');
   const [smartEditMode, setSmartEditMode] = useState(false);
   const iframeRef = useRef(null);
   const dispatch = useDispatch();
+  //代码信息
+  const { codeComponent } = useSelector(state => state.chat);
+
 
   // 更新代码状态
   useEffect(() => {
-    if (codeBlocks && codeBlocks.js) {
-      setCode(codeBlocks.js);
+    if (codeComponent) {
+      let code=preprocessCode(codeComponent.js.toString());
+      setCode(code);
     }
-  }, [codeBlocks]);
+  }, [codeComponent]);
 
   // 更新智能编辑模式状态
   useEffect(() => {
@@ -51,16 +56,7 @@ function CodeEditorPreview({ codeBlocks, isSmartEditMode }) {
     }
   }, [isSmartEditMode]);
 
-  // 预处理代码，去掉不必要的语句
-  const preprocessCode = (code) => {
-    let processedCode = code
-      .replace(/import\s+.*?from\s+['"].*?['"];?/g, '') // 去掉所有 import 语句
-      .replace(/export\s+default\s+\w+;?/, '') // 去掉 export default 语句
-      .replace(/const\s+\{\s*useState\s*,\s*useEffect\s*\}\s*=\s*React\s*;?/g, '') // 去掉 const { useState, useEffect } = React;
-      .replace(/const\s+\{\s*useState\s*\}\s*=\s*React\s*;?/g, '') // 去掉 const { useState } = React;
-      .replace(/import\s+React,\s*{\s*useState\s*}\s*from\s+['"]react['"];?/g, ''); // 去掉 import React, { useState } from 'react';
-    return processedCode;
-  };
+ 
 
 
   // 处理组件修订
@@ -68,7 +64,11 @@ function CodeEditorPreview({ codeBlocks, isSmartEditMode }) {
     try {
       const revisedCode = await reviseComponent(prompt, code);
       console.log('Revised code:', revisedCode);
-      dispatch(setCode(revisedCode)); // 更新 Redux store 中的代码状态
+      //dispatch(setCode(revisedCode)); 
+      const updatedCode = {
+        js: revisedCode.toString()
+    };
+      dispatch(updateCodeHandle(updatedCode));
     } catch (error) {
       console.error('Error revising component:', error);
     }
@@ -89,6 +89,8 @@ function CodeEditorPreview({ codeBlocks, isSmartEditMode }) {
           <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
           <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
           <script src="https://cdn.tailwindcss.com"></script>
+          <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+          <script src="https://unpkg.com/lucide@latest"></script>
           <style>
             /* 样式定义 */
             :root {

@@ -3,21 +3,22 @@ import { chatCompletion } from '../api/open_ai';
 
 // 定义一个异步 thunk，用于发送消息并获取 AI 的回复
 export const sendMessage = createAsyncThunk(
-  'chatAi/sendMessage',
+  'chat/sendMessage', // 更新 slice 名称
   async ({ text, image }, { getState }) => {
-    const { messages } = getState().chatAi;
+    const { messages } = getState().chat; // 确保这里使用的是 'chat'
     const response = await chatCompletion([...messages, { role: 'user', content: text }], image);
     return response;
   }
 );
 
 // 创建一个 Redux slice，用于管理聊天 AI 的状态
-const chatAiSlice = createSlice({
-  name: 'chatAi', // slice 的名称
+const chatSlice = createSlice({
+  name: 'chat', // 更新 slice 名称
   initialState: {
     messages: [], // 初始状态，包含一个空的消息数组
     isLoading: false, // 是否正在加载
     error: null, // 错误信息
+    codeComponent: { html: '', css: '', js: '' }, // 新增 codeBlocks 状态
   },
   reducers: {
     // 添加消息的 reducer
@@ -27,6 +28,9 @@ const chatAiSlice = createSlice({
     // 清空消息的 reducer
     clearMessages: (state) => {
       state.messages = [];
+    },
+    updateCodeHandle: (state, action) => { // 新增更新 codeBlocks 的 reducer
+      state.codeComponent = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -48,6 +52,6 @@ const chatAiSlice = createSlice({
   },
 });
 
-// 导出 actions 和 reducer
-export const { addMessage, clearMessages } = chatAiSlice.actions;
-export default chatAiSlice.reducer;
+// 导出新的 action
+export const { addMessage, clearMessages, updateCodeHandle } = chatSlice.actions;
+export default chatSlice.reducer;
