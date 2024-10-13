@@ -1,41 +1,46 @@
-name: Deploy React Frontend
+   name: Deploy React Frontend
 
-on:
-  push:
-    branches: [ master ]
+   on:
+     push:
+       branches: [ master ]  # 或者您的主分支名称
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    
-    steps:
-    # ... 前面的步骤保持不变 ...
+   jobs:
+     build-and-deploy:
+       runs-on: ubuntu-latest
+       
+       steps:
+       - name: Checkout repository
+         uses: actions/checkout@v2
 
-    - name: Deploy to server
-      uses: appleboy/scp-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        port: ${{ secrets.PORT }}
-        password: ${{ secrets.PASSWORD }}
-        source: "build/*"
-        target: "/data/aiweb/moduchat.clinet/"
-        strip_components: 1
-        debug: true  # 启用调试模式
+       - name: Set up Node.js
+         uses: actions/setup-node@v2
+         with:
+           node-version: '18.20.4'  # 使用与您项目兼容的 Node.js 版本
 
-    - name: Execute remote commands
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        port: ${{ secrets.PORT }}
-        password: ${{ secrets.PASSWORD }}
-        script: |
-          echo "Current directory: $(pwd)"
-          echo "Contents of /data/aiweb/:"
-          ls -la /data/aiweb/
-          cd /data/aiweb/
-          echo "Docker version: $(docker --version)"
-          echo "Docker Compose version: $(docker-compose --version)"
-          docker-compose up -d --build
-        debug: true  # 启用调试模式
+       - name: Install dependencies
+         run: npm ci
+
+       - name: Build project
+         run: npm run build
+
+       - name: Deploy to server
+         uses: appleboy/scp-action@master
+         with:
+           host: ${{ secrets.HOST }}
+           username: ${{ secrets.USERNAME }}
+           password: ${{ secrets.PASSWORD }}
+           port: ${{ secrets.PORT }}
+           source: "build/*"
+           target: "/data/aiweb/moduchat.clinet/"
+           strip_components: 1
+
+       - name: Execute remote commands
+         uses: appleboy/ssh-action@master
+         with:
+           host: ${{ secrets.HOST }}
+           username: ${{ secrets.USERNAME }}
+           password: ${{ secrets.PASSWORD }}
+           port: ${{ secrets.PORT }}
+           script: |
+             cd /data/aiweb/
+             docker-compose up -d --build
