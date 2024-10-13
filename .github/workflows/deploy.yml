@@ -1,0 +1,46 @@
+name: Deploy React Frontend
+
+on:
+  push:
+    branches: [ master ]  # 假设您的主分支是 main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'  # 使用适合您项目的 Node.js 版本
+
+    - name: Install dependencies
+      run: npm ci  # 使用 ci 而不是 install 以确保一致性
+
+    - name: Build project
+      run: npm run build  # 假设您的构建命令是 npm run build
+
+    - name: Deploy to server
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        port: ${{ secrets.PORT }}
+        password: ${{ secrets.PASSWORD }}
+        source: "build/*"  # 假设构建输出在 build 目录
+        target: "/data/aiweb/moduchat.clinet/"
+        strip_components: 1  # 去掉 build 目录
+
+    - name: Execute remote commands
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        port: ${{ secrets.PORT }}
+        password: ${{ secrets.PASSWORD }}
+        script: |
+          cd /data/aiweb/
+          docker-compose up -d --build  # 假设您的 docker-compose.yml 在 /data 目录
