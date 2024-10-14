@@ -24,23 +24,16 @@
          run: npm run build
 
        - name: Deploy to server
-         uses: appleboy/scp-action@master
-         with:
-           host: ${{ secrets.HOST }}
-           username: ${{ secrets.USERNAME }}
-           password: ${{ secrets.PASSWORD }}
-           port: ${{ secrets.PORT }}
-           source: "build/*"
-           target: "/data/aiweb/moduchat.clinet/"
-           strip_components: 1
-
-       - name: Execute remote commands
-         uses: appleboy/ssh-action@master
-         with:
-           host: ${{ secrets.HOST }}
-           username: ${{ secrets.USERNAME }}
-           password: ${{ secrets.PASSWORD }}
-           port: ${{ secrets.PORT }}
+         uses: easingthemes/ssh-deploy@v2.1.1
+         env:
+           SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+           ARGS: "-avzr --delete"
+           #build/*
+           SOURCE: "./build/"
+           REMOTE_HOST: ${{ secrets.HOST }}
+           REMOTE_USER: ${{ secrets.USERNAME }}
+           TARGET: '/data/aiweb/moduchat.clinet/'
+           EXCLUDE: "/node_modules/"
            script: |
              cd /data/aiweb/
              docker-compose up -d --build
