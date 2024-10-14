@@ -23,14 +23,6 @@ jobs:
     - name: Build project
       run: npm run build
 
-    - name: Debug SSH key and host (安全方式)
-      run: |
-        echo "主机名: ${{ secrets.HOST }}"
-        echo "私钥前几个字符: $(echo '${{ secrets.PRIVATE_KEY }}' | cut -c1-10)..."
-        echo "私钥行数: $(echo '${{ secrets.PRIVATE_KEY }}' | wc -l)"
-        echo "验证私钥格式:"
-        echo '${{ secrets.PRIVATE_KEY }}' | ssh-keygen -y -f /dev/stdin &> /dev/null && echo "私钥格式正确" || echo "私钥格式不正确"
-
     - name: Debug SSH connection
       run: |
         mkdir -p ~/.ssh
@@ -39,7 +31,7 @@ jobs:
         ssh -vvv -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} 'echo "SSH connection successful"'
 
     - name: Deploy to server
-      uses: easingthemes/ssh-deploy@v4.1.8  # 更新到最新版本
+      uses: easingthemes/ssh-deploy@v2.1.1 # 更新到最新版本
       env:
         SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         ARGS: "-avzr --delete"
