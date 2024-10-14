@@ -1,39 +1,54 @@
-   name: Deploy React Frontend
+name: Deploy React Frontend
 
-   on:
-     push:
-       branches: [ master ]  # 或者您的主分支名称
+on:
+  push:
+    branches: [ master ]  # 或者您的主分支名称
 
-   jobs:
-     build-and-deploy:
-       runs-on: ubuntu-latest
-       
-       steps:
-       - name: Checkout repository
-         uses: actions/checkout@v2
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-       - name: Set up Node.js
-         uses: actions/setup-node@v2
-         with:
-           node-version: '18.20.4'  # 使用与您项目兼容的 Node.js 版本
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'  # 使用更通用的版本号
 
-       - name: Install dependencies
-         run: npm ci
+    - name: Install dependencies
+      run: npm ci
 
-       - name: Build project
-         run: npm run build
+    - name: Build project
+      run: npm run build
 
-       - name: Deploy to server
-         uses: easingthemes/ssh-deploy@v2.1.1
-         env:
-           SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-           ARGS: "-avzr --delete"
-           #build/*
-           SOURCE: "./build/"
-           REMOTE_HOST: ${{ secrets.HOST }}
-           REMOTE_USER: ${{ secrets.USERNAME }}
-           TARGET: '/data/aiweb/moduchat.clinet/'
-           EXCLUDE: "/node_modules/"
-           script: |
-             cd /data/aiweb/
-             docker-compose up -d --build
+    - name: Debug SSH key and host (安全方式)
+      run: |
+        echo "主机名: ${{ secrets.HOST }}"
+        echo "私钥前几个字符: $(echo '${{ secrets.PRIVATE_KEY }}' | cut -c1-10)..."
+        echo "私钥行数: $(echo '${{ secrets.PRIVATE_KEY }}' | wc -l)"
+        echo "验证私钥格式:"
+        echo '${{ secrets.PRIVATE_KEY }}' | ssh-keygen -y -f /dev/stdin &> /dev/null && echo "私钥格式正确" || echo "私钥格式不正确"
+
+    - name: Deploy to server
+      uses: easingthemes/ssh-deploy@v4.1.8  # 更新到最新版本
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        ARGS: "-avzr --delete"
+        SOURCE: "./build/"
+        REMOTE_HOST: ${{ secrets.HOST }}
+        REMOTE_USER: ${{ secrets.USERNAME }}
+        TARGET: '/data/aiweb/moduchat.clinet/'
+        EXCLUDE: "/node_modules/"
+      # script 部分移除，因为 easingthemes/ssh-deploy 不直接支持这个选项
+
+    - name: Execute remote script
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        script: |
+          cd /data/aiweb/
+          docker-compose up -d --build
