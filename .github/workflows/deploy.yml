@@ -5,7 +5,7 @@ on:
     branches: [ master ]  # 或者您的主分支名称
 
 jobs:
-  build-and-deploy:  # 构建和部署
+  build-and-deploy:  # 构建和部署到服务器
     runs-on: ubuntu-latest
     
     steps:
@@ -57,8 +57,27 @@ jobs:
           docker-compose down
           docker-compose up -d
 
-    - name: 检查部署状态
-      if: failure()
-      run: |
-        echo "部署失败。正在检查 SSH 连接..."
-        ssh -v -i ~/.ssh/deploy_key ${{ secrets.USERNAME }}@${{ secrets.HOST }} 'echo "SSH 连接测试"'
+  deploy-to-github-pages:  # 部署到 GitHub Pages
+    needs: build-and-deploy  # 确保在服务器部署成功后才运行
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v3
+
+    - name: 设置 Node.js 环境
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+
+    - name: 安装依赖
+      run: npm ci
+
+    - name: 构建项目
+      run: npm run build
+
+    - name: 部署到 GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build
