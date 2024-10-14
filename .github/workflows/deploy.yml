@@ -1,50 +1,36 @@
-name: Deploy React Frontend
+name: 部署 React 前端
 
 on:
   push:
     branches: [ master ]  # 或者您的主分支名称
 
 jobs:
-  build-and-deploy:
+  构建和部署:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout repository
+    - name: 检出代码
       uses: actions/checkout@v3
 
-    - name: Set up Node.js
+    - name: 设置 Node.js 环境
       uses: actions/setup-node@v3
       with:
-        node-version: '18.x'  # 使用更通用的版本号
+        node-version: '18.x'
 
-    - name: Install dependencies
+    - name: 安装依赖
       run: npm ci
 
-    - name: Build project
+    - name: 构建项目
       run: npm run build
 
-    - name: Setup SSH key
+    - name: 设置 SSH 密钥
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.PRIVATE_KEY }}" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
         ssh-keygen -y -f ~/.ssh/deploy_key > ~/.ssh/deploy_key.pub
 
-    - name: Verify SSH key
-      run: ssh-keygen -l -f ~/.ssh/deploy_key
-
-    - name: Setup SSH agent
-      env:
-        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-      run: |
-        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-        ssh-add ~/.ssh/deploy_key
-
-    - name: Debug SSH connection
-      run: |
-        ssh -vvv -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} 'echo "SSH connection successful"'
-
-    - name: Deploy to server
+    - name: 部署到服务器
       uses: easingthemes/ssh-deploy@main
       env:
         SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
@@ -53,14 +39,14 @@ jobs:
           whoami
           ls -al
         SCRIPT_AFTER: |
-          echo "Deployment completed"
+          echo "部署完成"
         SOURCE: "./build/"
         REMOTE_HOST: ${{ secrets.HOST }}
         REMOTE_USER: ${{ secrets.USERNAME }}
         TARGET: '/data/aiweb/moduchat.clinet/'
         EXCLUDE: "/node_modules/, /.git/, /.github/"
 
-    - name: Execute remote script
+    - name: 执行远程脚本
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
@@ -70,8 +56,8 @@ jobs:
           cd /data/aiweb/
           docker-compose up -d --build
 
-    - name: Check deployment status
+    - name: 检查部署状态
       if: failure()
       run: |
-        echo "Deployment failed. Checking SSH connection..."
-        ssh -v -i ~/.ssh/deploy_key ${{ secrets.USERNAME }}@${{ secrets.HOST }} 'echo "SSH connection test"'
+        echo "部署失败。正在检查 SSH 连接..."
+        ssh -v -i ~/.ssh/deploy_key ${{ secrets.USERNAME }}@${{ secrets.HOST }} 'echo "SSH 连接测试"'
