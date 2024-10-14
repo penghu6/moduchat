@@ -23,18 +23,32 @@ jobs:
     - name: Build project
       run: npm run build
 
-    - name: Debug SSH connection
+    - name: Setup SSH key
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.PRIVATE_KEY }}" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
+        ssh-keygen -y -f ~/.ssh/deploy_key > ~/.ssh/deploy_key.pub
+
+    - name: Verify SSH key
+      run: ssh-keygen -l -f ~/.ssh/deploy_key
+
+    - name: Setup SSH agent
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+        ssh-add ~/.ssh/deploy_key
+
+    - name: Debug SSH connection
+      run: |
         ssh -vvv -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} 'echo "SSH connection successful"'
 
     - name: Deploy to server
-      uses: easingthemes/ssh-deploy@v2.1.1 # 更新到最新版本
+      uses: easingthemes/ssh-deploy@main
       env:
         SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-        ARGS: "-avzr --delete"
+        ARGS: "-avzr --delete -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'"
         SOURCE: "./build/"
         REMOTE_HOST: ${{ secrets.HOST }}
         REMOTE_USER: ${{ secrets.USERNAME }}
@@ -50,3 +64,9 @@ jobs:
         script: |
           cd /data/aiweb/
           docker-compose up -d --build
+
+    - name: Check deployment status
+      if: failure()
+      run: |
+        echo "Deployment failed. Checking SSH connection..."
+        ssh -v -i ~/.ssh/deploy_key ${{ secrets.USERNAME }}@${{ secrets.HOST }} 'echo "SSH connection test"'
