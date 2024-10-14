@@ -48,12 +48,17 @@ jobs:
       uses: easingthemes/ssh-deploy@main
       env:
         SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-        ARGS: "-avzr --delete -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'"
+        ARGS: "-avzc --delete"
+        SCRIPT_BEFORE: |
+          whoami
+          ls -al
+        SCRIPT_AFTER: |
+          echo "Deployment completed"
         SOURCE: "./build/"
         REMOTE_HOST: ${{ secrets.HOST }}
         REMOTE_USER: ${{ secrets.USERNAME }}
         TARGET: '/data/aiweb/moduchat.clinet/'
-        EXCLUDE: "/node_modules/"
+        EXCLUDE: "/node_modules/, /.git/, /.github/"
 
     - name: Execute remote script
       uses: appleboy/ssh-action@master
