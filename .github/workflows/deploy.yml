@@ -54,7 +54,8 @@ jobs:
         key: ${{ secrets.PRIVATE_KEY }}
         script: |
           cd /data/aiweb/
-          docker-compose up -d --build
+          docker-compose down
+          docker-compose up -d
 
     - name: 检查部署状态
       if: failure()
