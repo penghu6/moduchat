@@ -57,7 +57,7 @@ jobs:
           docker-compose down
           docker-compose up -d
 
-  deploy-to-github-pages:  # 部署到 GitHub Pages
+  deploy-to-github-pages:  # 部署到 GitHub Page
     needs: build-and-deploy  # 确保在服务器部署成功后才运行
     runs-on: ubuntu-latest
     
@@ -79,5 +79,5 @@ jobs:
     - name: 部署到 GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.PAGES_TOKEN }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./build
