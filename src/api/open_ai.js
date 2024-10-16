@@ -1,4 +1,4 @@
-import request from "./request";
+import { openaiService } from "./request";
 import { escapeRegExp } from "../utils/utils";  
 
 export async function chatCompletion(messages, imageFile = null) {
@@ -61,7 +61,7 @@ export async function chatCompletion(messages, imageFile = null) {
       systemMessage.push(...messages);
     }
 
-    const response = await request({
+    const response = await openaiService({
       url: "/v1/chat/completions",
       method: "POST",
       data: {
